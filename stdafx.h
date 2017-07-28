@@ -1,0 +1,78 @@
+// stdafx.h : 标准系统包含文件的包含文件，
+// 或是经常使用但不常更改的
+// 特定于项目的包含文件
+//
+
+#pragma once
+
+#include "targetver.h"
+
+#include <stdio.h>
+#include <tchar.h>
+#include <strsafe.h>
+
+#include "windows.h"
+#include "time.h"
+#include "math.h"
+
+// TODO:  在此处引用程序需要的其他头文件
+
+INT GetMilliSecondOfDay();
+
+VOID GetHMS(TCHAR * output);
+
+VOID LocalRegisterHotKey(_In_opt_ HWND hWnd, _In_ int id, _In_ UINT fsModifiers, _In_ UINT vk);
+
+VOID Trim(CHAR * string, INT length);
+
+// 简单模式匹配，匹配  dd:dd:dd,ddd 形式
+BOOLEAN SimpleRegexMatch(CHAR * target, INT offset, INT length, CHAR * regex, INT rLength, INT * out);
+
+// 将 dd:dd:dd,ddd 转换成 毫秒
+INT ConvertHMSF2Int(CHAR * target, INT offset);
+
+// 获取 气味 ID ，（1 ~ +00 ）,字符串包含 #!#
+INT GetSmellID(CHAR * taregt, INT length);
+
+// 获取 srt 文件中 时间段（毫秒）
+BOOLEAN GetSrtTimePeriod(CHAR * string, INT length, INT  * StartEnd);
+
+// 将毫秒转为 HMSF 格式的时间字符串
+VOID MilliSecond2HMSF(INT ms, TCHAR * msString);
+
+DWORD char2Wchar(char * sBuf, int sBufSize, WCHAR * output);
+
+VOID ShowLastErrorMsg(LPTSTR lpszFunction);
+
+VOID InitScentrealmFunctions(HINSTANCE g_ScentRealm_DLL, struct ScentrealmRuntime * runtime);
+
+typedef int(*pScentrealmInit)();
+typedef int(*pScentrealmPlaySmell)(int smell, int duration);
+typedef int(*pScentrealmStopPlay)();
+typedef int(*pScentrealmGetConnectStatus)();
+typedef int(*pScentrealmClose)();
+
+struct ScentrealmRuntime
+{
+	unsigned char DllState;  // is dll imported & function initialized
+	unsigned long LastErrorCode;   // dll error code
+	unsigned char ConnectState;    // connect status ,0 device connected，1 device unconnected，2 controller unconnected
+
+	bool isReconnecting;
+
+	int(*pInit)();
+	int(*pPlaySmell)(int smell, int duration);
+	int(*pStopPlay)();
+	int(*pGetConnectStatus)();
+	int(*pClose)();
+};
+
+#define CS_UNKNOWN 99
+#define CS_DEV_CONNECTED 0
+#define CS_DEV_UNCONNECTED 1
+#define CS_CTR_UNCONNECTED 2
+#define DS_UNLOAD 0XA0
+#define DS_LOADED 0XFF
+#define DS_LOADOV 0X01
+
+
