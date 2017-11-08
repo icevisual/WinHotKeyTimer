@@ -80,6 +80,29 @@ BOOLEAN LoadSrtInstructionFromFile(TCHAR * filename) {
 	fclose(fp);
 	return TRUE;
 }
+BOOLEAN SleepWithInterrupt(_In_ DWORD dwMilliseconds, BOOLEAN * Flag)
+{
+	INT Step = 1000;
+	INT ActuallyStep = 0;
+	while (dwMilliseconds > 0)
+	{
+		if (dwMilliseconds >= Step)
+		{
+			ActuallyStep = Step;
+			dwMilliseconds -= Step;
+		}
+		else
+		{
+			ActuallyStep = dwMilliseconds;
+			dwMilliseconds = 0;
+		}
+		Sleep(ActuallyStep);
+
+		if (*Flag == TRUE)
+			return FALSE;
+	}
+	return TRUE;
+}
 
 VOID RunScriptTimer() {
 	INT StartMillSecond = GetMilliSecondOfDay();
@@ -99,7 +122,15 @@ VOID RunScriptTimer() {
 		}
 		// 等待播放气味的 时间点 来临
 		// TODO 长时间的分割
-		Sleep(g_Script[i][0] - PreT - offset);
+		//Sleep(g_Script[i][0] - PreT - offset);
+		if (FALSE == SleepWithInterrupt(g_Script[i][0] - PreT - offset, &g_isStop))
+		{
+			// 手动停止脚本播放
+			GetHMS(g_CunnentTime);
+			_tprintf(_T("[%s] Script Stoped Manually\n"), g_CunnentTime);
+			return;
+		}
+
 		CurrentMillSecond = GetMilliSecondOfDay(); // 当前时间毫秒
 		if (CurrentMillSecond < StartMillSecond) {
 			// TODO 注意 跨 24 点
@@ -126,7 +157,16 @@ VOID RunScriptTimer() {
 		g_srRuntime.pPlaySmell(g_Script[i][2], playSecond);
 		
 		// 等待播放气味结束的 时间点 来临
-		Sleep(duration - offset);
+		//Sleep(duration - offset);
+
+		if (FALSE == SleepWithInterrupt(duration - offset, &g_isStop))
+		{
+			// 手动停止脚本播放
+			GetHMS(g_CunnentTime);
+			_tprintf(_T("[%s] Script Stoped Manually\n"), g_CunnentTime);
+			return;
+		}
+
 		// 发送 停止播放 指令
 		// TODO StopPlay
 		g_srRuntime.pStopPlay();
@@ -148,6 +188,8 @@ VOID RunScriptTimer() {
 	GetHMS(g_CunnentTime);
 	_tprintf(_T("[%s] Script Play Over\n"), g_CunnentTime);
 }
+
+
 
 
 INT main(int argc, TCHAR * argv[]) {
@@ -178,9 +220,9 @@ INT main(int argc, TCHAR * argv[]) {
 	ATOM m_HotKeyId2 = GlobalAddAtom(_T("WinHotKeySRCtl-StopScript")) - 0xc000;
 	ATOM m_HotKeyId3 = GlobalAddAtom(_T("WinHotKeySRCtl-Terminate"))  - 0xc000;
 	_tprintf(L"Register HotKeys ...\n");
-	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, 0x31);
-	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, 0x32);
-	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, 0x33);
+	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_NUMPAD1);
+	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_NUMPAD2);
+	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
 
 	_tprintf(L"Press Key `1` To Play Script\n");
 	_tprintf(L"Press Key `2` To Stop Script\n");
