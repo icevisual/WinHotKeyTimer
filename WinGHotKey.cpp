@@ -192,7 +192,7 @@ VOID RunScriptTimer() {
 
 
 
-INT main(int argc, TCHAR * argv[]) {
+INT main_1(int argc, TCHAR * argv[]) {
 
 	HWND hWnd = NULL;		// 窗口句柄
 	HANDLE hThread = NULL;	// 多线程句柄
@@ -229,6 +229,7 @@ INT main(int argc, TCHAR * argv[]) {
 	_tprintf(L"Press Key `3` To Exit\n");
 
 	while (GetMessage(&msg, NULL, 0, 0) != 0) {
+		DispatchMessage(&msg);
 		if (msg.message == WM_HOTKEY) {
 			GetHMS(g_CunnentTime);
 
