@@ -197,7 +197,6 @@ INT main_1(int argc, TCHAR * argv[]) {
 	HWND hWnd = NULL;		// 窗口句柄
 	HANDLE hThread = NULL;	// 多线程句柄
 	TCHAR sourceFilename[] = L"input.srt";
-
 	_tprintf(L"Load DLL ...\n");
 
 	InitScentrealmFunctions(g_ScentRealm_DLL,&g_srRuntime);
