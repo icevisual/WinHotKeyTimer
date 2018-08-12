@@ -68,6 +68,7 @@ BOOLEAN LoadConfigFromFile(TCHAR * filename) {
 
 INT Get_From_G_Config(string key_str,INT Default)
 {
+	printf("Get_From_G_Config (%s %d)\n", key_str.c_str(), Default);
 	ConfigMAP::iterator finded;
 	finded = G_Config_Map.find(key_str);
 	if (finded != G_Config_Map.end())
@@ -103,17 +104,6 @@ VOID RunSomething(INT trytime)
 		0xff + 200,
 		VK_E,
 		0xff + 200,
-		//VK_E,
-		//0xff + 300,
-		//VK_E,
-		//0xff + 300,
-		//VK_E,
-		//0xff + 300,
-		//VK_E,
-		//0xff + 300,
-		//VK_E,
-		//0xff + 300,
-		//VK_E,
 	};
 	int len = sizeof(vks) / sizeof(vks[0]);
 
@@ -331,9 +321,9 @@ INT CountROI_ConfirmYesNo(Mat src)
 
 VOID BugWorker()
 {
-	INT MaxWait			= Get_From_G_Config("MaxWaitForUseEnabled",10000);
-	INT AnimationTime	= Get_From_G_Config("SuccessAnimationTime", 4000);
-	INT FailedTime		= Get_From_G_Config("FailedWaitTime", 1000);
+	static INT MaxWait			= Get_From_G_Config("MaxWaitForUseEnabled",10000);
+	static INT AnimationTime	= Get_From_G_Config("SuccessAnimationTime", 4000);
+	static INT FailedTime		= Get_From_G_Config("FailedWaitTime", 1000);
 
 	RunPrepare();
 
@@ -382,55 +372,9 @@ VOID BugWorker()
 		_tprintf(_T("Not match\n"));
 		Sleep(FailedTime);
 	}
-
 }
 
-
-
 INT main(int argc, TCHAR * argv[]) {
-
-
-
-//	waitKey(0);
-//	Mat src = imread("ScreenShot/ConfirmYes.jpg");  //工程目录下应该有一张名为1.jpg的素材图  
-//	Mat src1 = imread("ScreenShot/ConfirmNO.jpg");
-//	//	cvtColor(src, src_gray, CV_RGB2GRAY);
-//
-//	//显示原始图   
-////	imshow("ScreenCapture", src);
-//	Mat ImageROI, ImageROI1;
-//
-//	Mat ImageROI_1, ImageROI_2;
-//	Mat ImageROI1_1, ImageROI1_2;
-//
-//	get_subimg_in_middle(src,  ImageROI, 740, 760, 50);
-//	get_subimg_in_middle(src1, ImageROI1, 740, 760, 50);
-//
-//	ImageROI_1 = ImageROI(Rect(0, 0, 370, 50 ));
-//	ImageROI_2 = ImageROI(Rect(370, 0, 370, 50));
-//
-//	ImageROI1_1 = ImageROI1(Rect(0, 0, 370, 50));
-//	ImageROI1_2 = ImageROI1(Rect(370, 0, 370, 50));
-//
-//	_tprintf(L"ImageROI = %d ,ImageROI1 = %d\n", CountPoint(ImageROI), CountPoint(ImageROI1));
-//	_tprintf(L"ImageROI_1 = %d ,ImageROI_2 = %d\n", CountPoint(ImageROI_1), CountPoint(ImageROI_2));
-//	_tprintf(L"ImageROI1_1 = %d ,ImageROI1_2 = %d\n", CountPoint(ImageROI1_1), CountPoint(ImageROI1_2));
-//
-//	namedWindow("ImageROI");
-//	namedWindow("ImageROI1");
-//	moveWindow("ImageROI", 0, 0);
-//	moveWindow("ImageROI1", 200, 200);
-//	imshow("ImageROI", ImageROI);
-//	imshow("ImageROI1", ImageROI1);
-//
-//	imshow("ImageROI_1", ImageROI_1);
-//	imshow("ImageROI_2", ImageROI_2);
-//	imshow("ImageROI1_1", ImageROI1_1);
-//	imshow("ImageROI1_2", ImageROI1_2);
-//	waitKey(0);
-//
-//
-//	return 1;
 
 	HWND hWnd = NULL;		// 窗口句柄
 	HANDLE hThread = NULL;	// 多线程句柄
@@ -438,10 +382,8 @@ INT main(int argc, TCHAR * argv[]) {
 	LoadConfigFromFile(sourceFilename);
 	_tprintf(L"Load config ...\n");
 
-
 	INT MaxCycleCount = Get_From_G_Config("MaxCycleCount", 10000);
 
-	return 1;
 	MSG msg = { 0 };		// 消息
 	DWORD dwThreadId = 0;	// 线程 ID
 	DWORD error = 0;
@@ -451,16 +393,14 @@ INT main(int argc, TCHAR * argv[]) {
 	ATOM m_HotKeyId4 = GlobalAddAtom(_T("WinHotKeySRCtl-Simulate")) - 0xc000;
 	ATOM m_HotKeyId5 = GlobalAddAtom(_T("WinHotKeySRCtl-RepeatSimulate")) - 0xc000;
 	ATOM m_HotKeyId7 = GlobalAddAtom(_T("WinHotKeySRCtl-ScreenShot")) - 0xc000;
-
 	ATOM m_HotKeyId8 = GlobalAddAtom(_T("WinHotKeySRCtl-StopCycle")) - 0xc000;
-
 	ATOM m_HotKeyId9 = GlobalAddAtom(_T("WinHotKeySRCtl-Test")) - 0xc000;
 	_tprintf(L"Register HotKeys ...\n");
 	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_NUMPAD1);
 	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_NUMPAD2);
 	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
 	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
-	LocalRegisterHotKey(hWnd, m_HotKeyId9, MOD_NOREPEAT, VK_NUMPAD9);
+//	LocalRegisterHotKey(hWnd, m_HotKeyId9, MOD_NOREPEAT, VK_NUMPAD9);
 	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, VK_NUMPAD5);
 	LocalRegisterHotKey(hWnd, m_HotKeyId7, MOD_NOREPEAT, VK_NUMPAD7);
 	LocalRegisterHotKey(hWnd, m_HotKeyId8, MOD_NOREPEAT, VK_NUMPAD8);
@@ -473,8 +413,7 @@ INT main(int argc, TCHAR * argv[]) {
 	//_tprintf(L"Press Key `6` To Exit\n");
 	_tprintf(L"Press Key `7` To Scan ScreenCapture\n");
 	_tprintf(L"Press Key `8` To Stop Cycle Ka Bug\n");
-	_tprintf(L"Press Key `9` To Ka Bug Key Frame\n");
-
+	//_tprintf(L"Press Key `9` To Ka Bug Key Frame\n");
 
 
 	while (GetMessage(&msg, NULL, 0, 0) != 0) {
@@ -515,44 +454,7 @@ INT main(int argc, TCHAR * argv[]) {
 				G_StopCycle = TRUE;
 			}
 			else if (m_HotKeyId9 == msg.wParam) {
-				BYTE VK_E = 0x45;
-				BYTE VK_R = 0x52;
-				BYTE vkc = VK_ESCAPE;
-				INT DefaultSleep = 100;
-				INT vks[] = {
-					VK_E, // use
-					0xff, // random sleep
-					VK_ESCAPE,
-				};
-				int len = sizeof(vks) / sizeof(vks[0]);
-
-				for (int i = 0; i < len; i++)
-				{
-					if (vks[i] == 0xff)
-					{
-						INT sleep = RandomInt(28, 32);
-						_tprintf(_T("Sleep %d \n"), sleep);
-						Sleep(sleep);
-					}
-					else if (vks[i] < 0xff)
-					{
-						INPUT input[2];
-						memset(input, 0, sizeof(input));
-						//按下 向下方向键
-						input[0].ki.wVk = vks[i];
-						input[0].type = INPUT_KEYBOARD;
-						//松开 向下方向键
-						input[1].ki.wVk = vks[i]; //你的字符
-						input[1].type = INPUT_KEYBOARD;
-						input[1].ki.dwFlags = KEYEVENTF_KEYUP;
-						//该函数合成键盘事件和鼠标事件，用来模拟鼠标或者键盘操作。事件将被插入在鼠标或者键盘处理队列里面
-						SendInput(2, input, sizeof(INPUT));
-					}
-					else
-					{
-						Sleep(vks[i] - 0xff);
-					}
-				}
+				
 			}
 		}
 	}
