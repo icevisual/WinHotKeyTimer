@@ -74,7 +74,7 @@ BOOLEAN LoadSrtInstructionFromFile(TCHAR * filename) {
 			attemptToGetSmellIDNextLine = FALSE;
 		}
 
-		Trim(line, lLength);
+		TrimNewLine(line, lLength);
 		// printf("%s %d\n", line, strlen(line));
 	}
 	fclose(fp);

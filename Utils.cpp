@@ -1,5 +1,5 @@
 #include "stdafx.h"
-
+#include <iostream>  
 
 INT GetMilliSecondOfDay()
 {
@@ -29,7 +29,7 @@ VOID LocalRegisterHotKey(_In_opt_ HWND hWnd, _In_ int id, _In_ UINT fsModifiers,
 	}
 }
 
-VOID Trim(CHAR * string, INT length) {
+VOID TrimNewLine(CHAR * string, INT length) {
 
 	while (length > 0 && string[length - 1] == '\n')
 	{
@@ -251,3 +251,146 @@ VOID InitScentrealmFunctions(HINSTANCE g_ScentRealm_DLL,struct ScentrealmRuntime
 	}
 	//FreeLibrary(my_dll);
 }
+
+
+INT RandomInt(INT min, INT max)
+{
+	static time_t i = 0;
+	if (i == 0)
+	{
+		srand((unsigned)time(NULL));
+		i++;
+	}
+
+	INT rd = rand();
+
+	rd %= (max - min);
+
+	return rd + min;
+}
+BOOL DoubleEqual(DOUBLE a, DOUBLE b)
+{
+	if (abs(a - b) < 1e-10)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+
+HBITMAP ScreenCapture(LPCSTR filename, WORD BitCount, LPRECT lpRect)
+{
+	HBITMAP hBitmap;
+	// 显示器屏幕DC
+	HDC hScreenDC = CreateDC(L"DISPLAY", NULL, NULL, NULL);
+	HDC hmemDC = CreateCompatibleDC(hScreenDC);
+	// 显示器屏幕的宽和高
+	int ScreenWidth = GetDeviceCaps(hScreenDC, HORZRES);
+	int ScreenHeight = GetDeviceCaps(hScreenDC, VERTRES);
+	// 旧的BITMAP，用于与所需截取的位置交换
+	HBITMAP hOldBM;
+	// 保存位图数据
+	PVOID lpvpxldata;
+	// 截屏获取的长宽及起点
+	INT ixStart;
+	INT iyStart;
+	INT iX;
+	INT iY;
+	// 位图数据大小
+	DWORD dwBitmapArraySize;
+	// 几个大小
+	DWORD nBitsOffset;
+	DWORD lImageSize;
+	DWORD lFileSize;
+	// 位图信息头
+	BITMAPINFO bmInfo;
+	// 位图文件头
+	BITMAPFILEHEADER bmFileHeader;
+	// 写文件用
+	HANDLE hbmfile;
+	DWORD dwWritten;
+
+	// 如果LPRECT 为NULL 截取整个屏幕
+	if (lpRect == NULL)
+	{
+		ixStart = iyStart = 0;
+		iX = ScreenWidth;
+		iY = ScreenHeight;
+	}
+	else
+	{
+		ixStart = lpRect->left;
+		iyStart = lpRect->top;
+		iX = lpRect->right - lpRect->left;
+		iY = lpRect->bottom - lpRect->top;
+	}
+	// 创建BTIMAP
+	hBitmap = CreateCompatibleBitmap(hScreenDC, iX, iY);
+	// 将BITMAP选择入内存DC。
+	hOldBM = (HBITMAP)SelectObject(hmemDC, hBitmap);
+	// BitBlt屏幕DC到内存DC，根据所需截取的获取设置参数
+	BitBlt(hmemDC, 0, 0, iX, iY, hScreenDC, ixStart, iyStart, SRCCOPY);
+	// 将旧的BITMAP对象选择回内存DC，返回值为被替换的对象，既所截取的位图
+	hBitmap = (HBITMAP)SelectObject(hmemDC, hOldBM);
+	if (filename == NULL)
+	{
+		DeleteDC(hScreenDC);
+		DeleteDC(hmemDC);
+		return hBitmap;
+	}
+	// 为位图数据申请内存空间
+	dwBitmapArraySize = ((((iX * 32) + 31) & ~31) >> 3)* iY;
+	lpvpxldata = HeapAlloc(GetProcessHeap(), HEAP_NO_SERIALIZE, dwBitmapArraySize);
+	ZeroMemory(lpvpxldata, dwBitmapArraySize);
+
+	// 添充 BITMAPINFO 结构
+	ZeroMemory(&bmInfo, sizeof(BITMAPINFO));
+	bmInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmInfo.bmiHeader.biWidth = iX;
+	bmInfo.bmiHeader.biHeight = iY;
+	bmInfo.bmiHeader.biPlanes = 1;
+	bmInfo.bmiHeader.biBitCount = BitCount;
+	bmInfo.bmiHeader.biCompression = BI_RGB;
+
+	// 添充 BITMAPFILEHEADER 结构
+	ZeroMemory(&bmFileHeader, sizeof(BITMAPFILEHEADER));
+	nBitsOffset = sizeof(BITMAPFILEHEADER) + bmInfo.bmiHeader.biSize;
+	lImageSize =
+		((((bmInfo.bmiHeader.biWidth * bmInfo.bmiHeader.biBitCount) + 31) & ~31) >> 3)
+		* bmInfo.bmiHeader.biHeight;
+	lFileSize = nBitsOffset + lImageSize;
+	bmFileHeader.bfType = 'B' + ('M' << 8);
+	bmFileHeader.bfSize = lFileSize;
+	bmFileHeader.bfOffBits = nBitsOffset;
+
+	// 获取DIB用于写入到文件
+	GetDIBits(hmemDC, hBitmap, 0, bmInfo.bmiHeader.biHeight,
+		lpvpxldata, &bmInfo, DIB_RGB_COLORS);
+	// 写文件
+	hbmfile = CreateFileA(filename,
+		GENERIC_WRITE,
+		FILE_SHARE_WRITE,
+		NULL,
+		CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL);
+
+	if (hbmfile == INVALID_HANDLE_VALUE)
+	{
+		MessageBoxA(NULL, "create file error", "error", MB_OK);
+	}
+
+	WriteFile(hbmfile, &bmFileHeader, sizeof(BITMAPFILEHEADER), &dwWritten, NULL);
+	WriteFile(hbmfile, &bmInfo, sizeof(BITMAPINFO), &dwWritten, NULL);
+	WriteFile(hbmfile, lpvpxldata, lImageSize, &dwWritten, NULL);
+	CloseHandle(hbmfile);
+	//	MessageBox(NULL,"文件写入成功","error",MB_OK);
+
+	// 释放内存，清除不同的DC。
+	// 这里没有删除BITMAP对象，需在显示完成后删除
+	HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, lpvpxldata);
+	ReleaseDC(0, hScreenDC);
+	DeleteDC(hmemDC);
+	return hBitmap;
+}
+

@@ -23,7 +23,7 @@ VOID GetHMS(TCHAR * output);
 
 VOID LocalRegisterHotKey(_In_opt_ HWND hWnd, _In_ int id, _In_ UINT fsModifiers, _In_ UINT vk);
 
-VOID Trim(CHAR * string, INT length);
+VOID TrimNewLine(CHAR * string, INT length);
 
 // 简单模式匹配，匹配  dd:dd:dd,ddd 形式
 BOOLEAN SimpleRegexMatch(CHAR * target, INT offset, INT length, CHAR * regex, INT rLength, INT * out);
@@ -45,6 +45,10 @@ DWORD char2Wchar(char * sBuf, int sBufSize, WCHAR * output);
 VOID ShowLastErrorMsg(LPTSTR lpszFunction);
 
 VOID InitScentrealmFunctions(HINSTANCE g_ScentRealm_DLL, struct ScentrealmRuntime * runtime);
+
+INT RandomInt(INT min, INT max);
+BOOL DoubleEqual(DOUBLE a, DOUBLE b);
+HBITMAP ScreenCapture(LPCSTR filename, WORD BitCount, LPRECT lpRect);
 
 typedef int(*pScentrealmInit)();
 typedef int(*pScentrealmPlaySmell)(int smell, int duration);

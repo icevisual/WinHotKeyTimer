@@ -1,27 +1,36 @@
 // WinGHotKey.cpp : 定义控制台应用程序的入口点。
 //
 #include "stdafx.h"
+//
+#include <opencv2/opencv.hpp>  
+#include<opencv2/highgui/highgui.hpp>  
+#include<opencv2/imgproc/imgproc.hpp>  
 
 
+#include <cv.h>  
+#include <highgui.h>  
+#include <iostream>  
 
+#include<windows.h>
+#include<Mmsystem.h>
+#pragma comment(lib,"winmm.lib")
+#include <map> 
+
+
+using namespace std;
+using namespace cv;
 
 static TCHAR g_CunnentTime[64] = { 0 };
+typedef map<string, int> ConfigMAP;
 
+ConfigMAP G_Config_Map;
 
-INT RandomInt(INT min, INT max)
+INT IndexOf(CHAR *data,INT length, CHAR chr)
 {
-	static time_t i = 0;
-	if (i == 0)
-	{
-		srand((unsigned)time(NULL));
-		i++;
-	}
-
-	INT rd = rand();
-
-	rd %= (max - min);
-
-	return rd + min;
+	for (int i = 0; i < length; i++)
+		if (data[i] == chr)
+			return i;
+	return -1;
 }
 
 // 从 srt 文件 气味播放指令
@@ -34,134 +43,38 @@ BOOLEAN LoadConfigFromFile(TCHAR * filename) {
 	}
 	CHAR line[255] = { 0 };
 	INT pos[2] = { 0 }, lLength = 0, smellID = 0;
+	INT EqPos = -1;
 	while (!feof(fp))
 	{
 		fgets(line, sizeof(line), fp);
 		lLength = strlen(line);
 
-		Trim(line, lLength);
+		TrimNewLine(line, lLength);
+		lLength = strlen(line);
+		if ((EqPos = IndexOf(line, lLength, '=')) > 0 && EqPos < lLength - 1)
+		{
+			string key_str(line,EqPos);
+			string value_str(line + EqPos + 1);
+			stringstream value_stream(value_str);
+			int value_int = 0;
+			value_stream >> value_int;
+			G_Config_Map.insert(pair<string, int>(key_str, value_int));
+		}
 		printf("%s %d\n", line, strlen(line));
 	}
 	fclose(fp);
 	return TRUE;
 }
 
-
-HBITMAP ScreenCapture(LPCSTR filename, WORD BitCount, LPRECT lpRect)
+INT Get_From_G_Config(string key_str,INT Default)
 {
-	HBITMAP hBitmap;
-	// 显示器屏幕DC
-	HDC hScreenDC = CreateDC(L"DISPLAY", NULL, NULL, NULL);
-	HDC hmemDC = CreateCompatibleDC(hScreenDC);
-	// 显示器屏幕的宽和高
-	int ScreenWidth = GetDeviceCaps(hScreenDC, HORZRES);
-	int ScreenHeight = GetDeviceCaps(hScreenDC, VERTRES);
-	// 旧的BITMAP，用于与所需截取的位置交换
-	HBITMAP hOldBM;
-	// 保存位图数据
-	PVOID lpvpxldata;
-	// 截屏获取的长宽及起点
-	INT ixStart;
-	INT iyStart;
-	INT iX;
-	INT iY;
-	// 位图数据大小
-	DWORD dwBitmapArraySize;
-	// 几个大小
-	DWORD nBitsOffset;
-	DWORD lImageSize;
-	DWORD lFileSize;
-	// 位图信息头
-	BITMAPINFO bmInfo;
-	// 位图文件头
-	BITMAPFILEHEADER bmFileHeader;
-	// 写文件用
-	HANDLE hbmfile;
-	DWORD dwWritten;
-
-	// 如果LPRECT 为NULL 截取整个屏幕
-	if (lpRect == NULL)
-	{
-		ixStart = iyStart = 0;
-		iX = ScreenWidth;
-		iY = ScreenHeight;
-	}
-	else
-	{
-		ixStart = lpRect->left;
-		iyStart = lpRect->top;
-		iX = lpRect->right - lpRect->left;
-		iY = lpRect->bottom - lpRect->top;
-	}
-	// 创建BTIMAP
-	hBitmap = CreateCompatibleBitmap(hScreenDC, iX, iY);
-	// 将BITMAP选择入内存DC。
-	hOldBM = (HBITMAP)SelectObject(hmemDC, hBitmap);
-	// BitBlt屏幕DC到内存DC，根据所需截取的获取设置参数
-	BitBlt(hmemDC, 0, 0, iX, iY, hScreenDC, ixStart, iyStart, SRCCOPY);
-	// 将旧的BITMAP对象选择回内存DC，返回值为被替换的对象，既所截取的位图
-	hBitmap = (HBITMAP)SelectObject(hmemDC, hOldBM);
-	if (filename == NULL)
-	{
-		DeleteDC(hScreenDC);
-		DeleteDC(hmemDC);
-		return hBitmap;
-	}
-	// 为位图数据申请内存空间
-	dwBitmapArraySize = ((((iX * 32) + 31) & ~31) >> 3)* iY;
-	lpvpxldata = HeapAlloc(GetProcessHeap(), HEAP_NO_SERIALIZE, dwBitmapArraySize);
-	ZeroMemory(lpvpxldata, dwBitmapArraySize);
-
-	// 添充 BITMAPINFO 结构
-	ZeroMemory(&bmInfo, sizeof(BITMAPINFO));
-	bmInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bmInfo.bmiHeader.biWidth = iX;
-	bmInfo.bmiHeader.biHeight = iY;
-	bmInfo.bmiHeader.biPlanes = 1;
-	bmInfo.bmiHeader.biBitCount = BitCount;
-	bmInfo.bmiHeader.biCompression = BI_RGB;
-
-	// 添充 BITMAPFILEHEADER 结构
-	ZeroMemory(&bmFileHeader, sizeof(BITMAPFILEHEADER));
-	nBitsOffset = sizeof(BITMAPFILEHEADER) + bmInfo.bmiHeader.biSize;
-	lImageSize =
-		((((bmInfo.bmiHeader.biWidth * bmInfo.bmiHeader.biBitCount) + 31) & ~31) >> 3)
-		* bmInfo.bmiHeader.biHeight;
-	lFileSize = nBitsOffset + lImageSize;
-	bmFileHeader.bfType = 'B' + ('M' << 8);
-	bmFileHeader.bfSize = lFileSize;
-	bmFileHeader.bfOffBits = nBitsOffset;
-
-	// 获取DIB用于写入到文件
-	GetDIBits(hmemDC, hBitmap, 0, bmInfo.bmiHeader.biHeight,
-		lpvpxldata, &bmInfo, DIB_RGB_COLORS);
-	// 写文件
-	hbmfile = CreateFileA(filename,
-		GENERIC_WRITE,
-		FILE_SHARE_WRITE,
-		NULL,
-		CREATE_ALWAYS,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL);
-
-	if (hbmfile == INVALID_HANDLE_VALUE)
-	{
-		MessageBoxA(NULL, "create file error", "error", MB_OK);
-	}
-
-	WriteFile(hbmfile, &bmFileHeader, sizeof(BITMAPFILEHEADER), &dwWritten, NULL);
-	WriteFile(hbmfile, &bmInfo, sizeof(BITMAPINFO), &dwWritten, NULL);
-	WriteFile(hbmfile, lpvpxldata, lImageSize, &dwWritten, NULL);
-	CloseHandle(hbmfile);
-	//	MessageBox(NULL,"文件写入成功","error",MB_OK);
-
-	// 释放内存，清除不同的DC。
-	// 这里没有删除BITMAP对象，需在显示完成后删除
-	HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, lpvpxldata);
-	ReleaseDC(0, hScreenDC);
-	DeleteDC(hmemDC);
-	return hBitmap;
+	ConfigMAP::iterator finded;
+	finded = G_Config_Map.find(key_str);
+	if (finded != G_Config_Map.end())
+		return finded->second;
+	return Default;
 }
+
 
 BOOL G_StopCycle = FALSE;
 
@@ -190,17 +103,17 @@ VOID RunSomething(INT trytime)
 		0xff + 200,
 		VK_E,
 		0xff + 200,
-		VK_E,
-		0xff + 300,
-		VK_E,
-		0xff + 300,
-		VK_E,
-		0xff + 300,
-		VK_E,
-		0xff + 300,
-		VK_E,
-		0xff + 300,
-		VK_E,
+		//VK_E,
+		//0xff + 300,
+		//VK_E,
+		//0xff + 300,
+		//VK_E,
+		//0xff + 300,
+		//VK_E,
+		//0xff + 300,
+		//VK_E,
+		//0xff + 300,
+		//VK_E,
 	};
 	int len = sizeof(vks) / sizeof(vks[0]);
 
@@ -245,9 +158,279 @@ VOID RunSomething(INT trytime)
 
 }
 
+
+
+
+
+VOID RunSimulateKeys(INT * vks,INT len)
+{
+	for (int i = 0; i < len; i++)
+	{
+		if (vks[i] == 0xff)
+		{
+			INT sleep = RandomInt(28, 32);
+			_tprintf(_T("Sleep %d \n"), sleep);
+			Sleep(sleep);
+		}
+		else if (vks[i] < 0xff)
+		{
+			INPUT input[2];
+			memset(input, 0, sizeof(input));
+			//按下 向下方向键
+			input[0].ki.wVk = vks[i];
+			input[0].type = INPUT_KEYBOARD;
+			//松开 向下方向键
+			input[1].ki.wVk = vks[i]; //你的字符
+			input[1].type = INPUT_KEYBOARD;
+			input[1].ki.dwFlags = KEYEVENTF_KEYUP;
+			//该函数合成键盘事件和鼠标事件，用来模拟鼠标或者键盘操作。事件将被插入在鼠标或者键盘处理队列里面
+			SendInput(2, input, sizeof(INPUT));
+		}
+		else
+		{
+			Sleep(vks[i] - 0xff);
+		}
+	}
+}
+
+
+
+VOID RunPrepare()
+{
+	BYTE VK_E = 0x45;
+	BYTE VK_R = 0x52;
+	BYTE vkc = VK_ESCAPE;
+	INT DefaultSleep = 100;
+	INT vks[] = {
+		VK_ESCAPE , // option
+		0xff + 200,
+		VK_E,
+		0xff + DefaultSleep,
+		VK_UP,  // target
+		0xff + DefaultSleep,
+		VK_E, // use
+		0xff + DefaultSleep,
+		VK_E, // use
+		0xff, // random sleep
+		VK_ESCAPE,
+		0xff + DefaultSleep,
+		VK_RIGHT,  // souls
+		0xff + DefaultSleep,
+		VK_E,
+		0xff + 200,
+		VK_E,
+		0xff + 200,
+	};
+	RunSimulateKeys(vks,sizeof(vks) / sizeof(vks[0]));
+}
+
+
+
+VOID RunUse()
+{
+	BYTE VK_E = 0x45;
+	BYTE VK_R = 0x52;
+	BYTE vkc = VK_ESCAPE;
+	INT DefaultSleep = 100;
+	INT vks[] = {
+		VK_E,
+		0xff + 200,
+		VK_E,
+		0xff + 200,
+	};
+	RunSimulateKeys(vks, sizeof(vks) / sizeof(vks[0]));
+}
+
+
+void get_subimg_in_middle(Mat img,Mat &out,INT target_width, INT ys, INT he)
+{
+	INT w = img.size().width;
+	INT h = img.size().height;
+	INT sx = (w - target_width) / 2.0;
+	INT ex = (w + target_width) / 2.0;
+	out = img(Rect(sx,ys, target_width,he));
+}
+
+INT CountPoint(Mat Input)
+{
+	Mat_<Vec3b> I = Input;
+	INT Count_1 = 0;
+	for (int i = 0; i < I.rows; ++i)
+	{
+		for (int j = 0; j < I.cols; ++j)
+		{
+			if (abs(I(i, j)[0] - 9) < 10 &&
+				abs(I(i, j)[1] - 26) < 10 &&
+				abs(I(i, j)[2] - 70) < 10)
+			{
+				//I(i, j)[0] = 0;
+				//I(i, j)[1] = 0;
+				//I(i, j)[2] = 0;
+			}
+			else
+				Count_1++;
+		}
+
+	}
+	return Count_1;
+}
+
+
+INT CountROI_CanUseOrNot(Mat src)
+{
+	Mat ImageROI, ImageROI1;
+	get_subimg_in_middle(src, ImageROI, 360, 310, 40);
+	INT pC = CountPoint(ImageROI);
+	DOUBLE p = 1000000.0 * pC / (360.0 * 40);
+	INT iP = ceil(p);
+
+	_tprintf(L"Count = %d, %.6f\n", pC, p);
+	// 0.116181
+	if (iP == 116181)
+	{
+		// Can Use
+		return 1;
+	}
+	// 0.214375
+	if (iP == 214375)
+	{
+		// Can'T Use
+		return 2;
+	}
+	return -1;
+}
+
+
+INT CountROI_ConfirmYesNo(Mat src)
+{
+	Mat ImageROI,ImageROI_1, ImageROI_2;
+	get_subimg_in_middle(src, ImageROI, 740, 760, 50);
+	ImageROI_1 = ImageROI(Rect(0, 0, 370, 50));
+	ImageROI_2 = ImageROI(Rect(370, 0, 370, 50));
+	INT pLC = CountPoint(ImageROI_1);
+	INT pRC = CountPoint(ImageROI_2);
+	INT Total = 370 * 50;
+	_tprintf(L"Left = %d,%.6f Right = %d,%.6f\n", pLC, pLC * 1.0/ Total, pRC, pRC * 1.0/ Total);
+
+	DOUBLE pL = pLC * 1.0 / Total;
+	DOUBLE pR = pRC * 1.0 / Total;
+
+	if ((DoubleEqual(pL, 0.39) || DoubleEqual(pL, 0.40)) && DoubleEqual(pR, 1.00))
+	{
+		// Left Selected
+		return 1;
+	}
+	if ((DoubleEqual(pR, 0.39) || DoubleEqual(pR, 0.40)) && DoubleEqual(pL, 1.00))
+	{
+		// Right Selected
+		return 2;
+	}
+	return -1;
+}
+
+
+VOID BugWorker()
+{
+	INT MaxWait			= Get_From_G_Config("MaxWaitForUseEnabled",10000);
+	INT AnimationTime	= Get_From_G_Config("SuccessAnimationTime", 4000);
+	INT FailedTime		= Get_From_G_Config("FailedWaitTime", 1000);
+
+	RunPrepare();
+
+	LPSTR addr = "ScreenCapture.png";
+	ScreenCapture(addr, 32, NULL);
+	Mat src = imread("ScreenCapture.png");
+	
+	INT CanUseOrNot = CountROI_CanUseOrNot(src);
+
+	if (CanUseOrNot == 1)
+	{
+		_tprintf(_T("Can Use\n"));
+		RunUse();
+		// wait animation
+		Sleep(AnimationTime);
+	}
+	else if (CanUseOrNot == 2)
+	{
+		_tprintf(_T("Can'T Use\n"));
+		
+		INT Step = 300;
+		INT Cur = 0;
+		while (Cur < MaxWait)
+		{
+			Sleep(Step);
+			ScreenCapture(addr, 32, NULL);
+			src.clone();
+			src = imread("ScreenCapture.png");
+			CanUseOrNot = CountROI_CanUseOrNot(src);
+			if (CanUseOrNot == 1)
+			{
+				break;
+			}
+			Cur += Step;
+		}
+		if (CanUseOrNot == 1)
+		{
+			_tprintf(_T("Can Use After Wait(%d)\n"), Cur);
+			RunUse();
+			// wait animation
+			Sleep(AnimationTime);
+		}
+	}
+	else
+	{
+		_tprintf(_T("Not match\n"));
+		Sleep(FailedTime);
+	}
+
+}
+
+
+
 INT main(int argc, TCHAR * argv[]) {
 
 
+
+//	waitKey(0);
+//	Mat src = imread("ScreenShot/ConfirmYes.jpg");  //工程目录下应该有一张名为1.jpg的素材图  
+//	Mat src1 = imread("ScreenShot/ConfirmNO.jpg");
+//	//	cvtColor(src, src_gray, CV_RGB2GRAY);
+//
+//	//显示原始图   
+////	imshow("ScreenCapture", src);
+//	Mat ImageROI, ImageROI1;
+//
+//	Mat ImageROI_1, ImageROI_2;
+//	Mat ImageROI1_1, ImageROI1_2;
+//
+//	get_subimg_in_middle(src,  ImageROI, 740, 760, 50);
+//	get_subimg_in_middle(src1, ImageROI1, 740, 760, 50);
+//
+//	ImageROI_1 = ImageROI(Rect(0, 0, 370, 50 ));
+//	ImageROI_2 = ImageROI(Rect(370, 0, 370, 50));
+//
+//	ImageROI1_1 = ImageROI1(Rect(0, 0, 370, 50));
+//	ImageROI1_2 = ImageROI1(Rect(370, 0, 370, 50));
+//
+//	_tprintf(L"ImageROI = %d ,ImageROI1 = %d\n", CountPoint(ImageROI), CountPoint(ImageROI1));
+//	_tprintf(L"ImageROI_1 = %d ,ImageROI_2 = %d\n", CountPoint(ImageROI_1), CountPoint(ImageROI_2));
+//	_tprintf(L"ImageROI1_1 = %d ,ImageROI1_2 = %d\n", CountPoint(ImageROI1_1), CountPoint(ImageROI1_2));
+//
+//	namedWindow("ImageROI");
+//	namedWindow("ImageROI1");
+//	moveWindow("ImageROI", 0, 0);
+//	moveWindow("ImageROI1", 200, 200);
+//	imshow("ImageROI", ImageROI);
+//	imshow("ImageROI1", ImageROI1);
+//
+//	imshow("ImageROI_1", ImageROI_1);
+//	imshow("ImageROI_2", ImageROI_2);
+//	imshow("ImageROI1_1", ImageROI1_1);
+//	imshow("ImageROI1_2", ImageROI1_2);
+//	waitKey(0);
+//
+//
+//	return 1;
 
 	HWND hWnd = NULL;		// 窗口句柄
 	HANDLE hThread = NULL;	// 多线程句柄
@@ -255,6 +438,10 @@ INT main(int argc, TCHAR * argv[]) {
 	LoadConfigFromFile(sourceFilename);
 	_tprintf(L"Load config ...\n");
 
+
+	INT MaxCycleCount = Get_From_G_Config("MaxCycleCount", 10000);
+
+	return 1;
 	MSG msg = { 0 };		// 消息
 	DWORD dwThreadId = 0;	// 线程 ID
 	DWORD error = 0;
@@ -284,7 +471,7 @@ INT main(int argc, TCHAR * argv[]) {
 	_tprintf(L"Press Key `4` To Ka Bug\n");
 	_tprintf(L"Press Key `5` To Cycle Ka Bug 50\n");
 	//_tprintf(L"Press Key `6` To Exit\n");
-	_tprintf(L"Press Key `7` To ScreenCapture\n");
+	_tprintf(L"Press Key `7` To Scan ScreenCapture\n");
 	_tprintf(L"Press Key `8` To Stop Cycle Ka Bug\n");
 	_tprintf(L"Press Key `9` To Ka Bug Key Frame\n");
 
@@ -311,22 +498,18 @@ INT main(int argc, TCHAR * argv[]) {
 				break;
 			}
 			else if (m_HotKeyId4 == msg.wParam) {
-				RunSomething(1);
-				
-				//keybd_event(VK_E, MapVirtualKey(VK_E, 0), 0, 0);   //按下A键
-				//keybd_event(VK_E, MapVirtualKey(VK_E, 0), KEYEVENTF_KEYUP, 0);   //释放A键
-				//INT sleep = RandomInt(1, 200);
-				//_tprintf(_T("Sleep %d \n"), sleep);
-				//Sleep(sleep);
-				//keybd_event(vkc, MapVirtualKey(vkc, 0), 0, 0);   //按下A键
-				//keybd_event(vkc, MapVirtualKey(vkc, 0), KEYEVENTF_KEYUP, 0);   //释放A键
+				BugWorker();
 			}
 			else if (m_HotKeyId5 == msg.wParam) {
-				RunSomething(50);
+				for(int ii = 0 ; ii < MaxCycleCount; ii ++)
+					BugWorker();
 			}
 			else if (m_HotKeyId7 == msg.wParam) {
 				LPSTR addr = "ScreenCapture.png";
 				ScreenCapture(addr, 32, NULL);
+				Mat src = imread("ScreenCapture.png");
+				CountROI_CanUseOrNot(src);
+				CountROI_ConfirmYesNo(src);
 			}
 			else if (m_HotKeyId8 == msg.wParam) {
 				G_StopCycle = TRUE;
