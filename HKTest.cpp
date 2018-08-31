@@ -145,11 +145,7 @@ VOID RunSomething(INT trytime)
 			break;
 		}
 	}
-
 }
-
-
-
 
 
 VOID RunSimulateKeys(INT * vks,INT len)
@@ -374,9 +370,11 @@ VOID BugWorker()
 	}
 }
 
-INT main(int argc, TCHAR * argv[]) {
+INT main2121(int argc, TCHAR * argv[]) {
+
 
 	HWND hWnd = NULL;		// 窗口句柄
+
 	HANDLE hThread = NULL;	// 多线程句柄
 	TCHAR sourceFilename[] = L"config.conf";
 	LoadConfigFromFile(sourceFilename);

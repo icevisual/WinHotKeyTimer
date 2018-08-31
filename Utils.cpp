@@ -394,3 +394,80 @@ HBITMAP ScreenCapture(LPCSTR filename, WORD BitCount, LPRECT lpRect)
 	return hBitmap;
 }
 
+// 模拟键盘输入，低四位分别 代表 是否 Shift、Ctrl、Win、Alt
+VOID SimulateKeyInput(WORD Key, CHAR WithSCWA)
+{
+	CHAR KeyCount = 1;
+	for (int i = 0; i < 4; i++)
+		if ((WithSCWA >> i) & 0b1)
+			KeyCount++;
+	KeyCount = KeyCount * 2;
+	INT k = 0;
+	INPUT input[10];
+	if (WithSCWA & 0b1000)
+	{
+		// width shift
+		input[k].ki.wVk = VK_SHIFT;
+		input[k ++].type = INPUT_KEYBOARD;
+	}
+	if (WithSCWA & 0b0100)
+	{
+		// width shift
+		input[k].ki.wVk = VK_CONTROL;
+		input[k ++].type = INPUT_KEYBOARD;
+	}
+	if (WithSCWA & 0b0010)
+	{
+		// width shift
+		input[k].ki.wVk = VK_MENU;
+		input[k ++].type = INPUT_KEYBOARD;
+	}
+	if (WithSCWA & 0b0001)
+	{
+		// width shift
+		input[k].ki.wVk = VK_LWIN;
+		input[k ++].type = INPUT_KEYBOARD;
+	}
+	input[k].ki.wVk = Key;
+	input[k++].type = INPUT_KEYBOARD;
+
+	memset(input, 0, sizeof(input));
+	//按下 向下方向键
+	input[0].ki.wVk = Key;
+	input[0].type = INPUT_KEYBOARD;
+	//松开 向下方向键
+	input[1].ki.wVk = Key; //你的字符
+	input[1].type = INPUT_KEYBOARD;
+	input[1].ki.dwFlags = KEYEVENTF_KEYUP;
+	//该函数合成键盘事件和鼠标事件，用来模拟鼠标或者键盘操作。事件将被插入在鼠标或者键盘处理队列里面
+	SendInput(2, input, sizeof(INPUT));
+}
+
+
+WORD ConvertChar2KeyWord(CHAR ch)
+{
+	if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
+		return ch;
+	if (ch >= '0' && ch <= '9')
+		return 0x30 + ch - '0';
+
+
+
+		/*0x30 0 key
+		0x31 1 key
+		0x32 2 key
+		0x33 3 key
+		0x34 4 key
+		0x35 5 key
+		0x36 6 key
+		0x37 7 key
+		0x38 8 key
+		0x39 9 key*/
+
+	BYTE VK_E = 0x45;
+	BYTE VK_R = 0x52;
+
+	printf("%c %c", VK_E, VK_R);
+	return 1;
+}
+

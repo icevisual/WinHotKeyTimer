@@ -48,7 +48,12 @@ VOID InitScentrealmFunctions(HINSTANCE g_ScentRealm_DLL, struct ScentrealmRuntim
 
 INT RandomInt(INT min, INT max);
 BOOL DoubleEqual(DOUBLE a, DOUBLE b);
+// 截屏
 HBITMAP ScreenCapture(LPCSTR filename, WORD BitCount, LPRECT lpRect);
+// 模拟键盘输入，低四位分别 代表 是否 Shift、Ctrl、Win、Alt
+VOID SimulateKeyInput(WORD Key,CHAR WithSCWA);
+// 将字符转化为 VK
+WORD ConvertChar2KeyWord(CHAR ch);
 
 typedef int(*pScentrealmInit)();
 typedef int(*pScentrealmPlaySmell)(int smell, int duration);
