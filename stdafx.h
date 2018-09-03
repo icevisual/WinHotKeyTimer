@@ -14,6 +14,8 @@
 #include "windows.h"
 #include "time.h"
 #include "math.h"
+#include <iostream>  
+using namespace std;
 
 // TODO:  在此处引用程序需要的其他头文件
 
@@ -54,6 +56,8 @@ HBITMAP ScreenCapture(LPCSTR filename, WORD BitCount, LPRECT lpRect);
 VOID SimulateKeyInput(WORD Key,CHAR WithSCWA);
 // 将字符转化为 VK
 WORD ConvertChar2KeyWord(CHAR ch);
+
+WORD ConvertChar2KeyWord(string str);
 
 typedef int(*pScentrealmInit)();
 typedef int(*pScentrealmPlaySmell)(int smell, int duration);

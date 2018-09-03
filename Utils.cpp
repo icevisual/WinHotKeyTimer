@@ -1,5 +1,12 @@
 #include "stdafx.h"
+
+#include <vector>
 #include <iostream>  
+#include <map>
+using namespace std;
+using std::vector;
+
+
 
 INT GetMilliSecondOfDay()
 {
@@ -403,71 +410,133 @@ VOID SimulateKeyInput(WORD Key, CHAR WithSCWA)
 			KeyCount++;
 	KeyCount = KeyCount * 2;
 	INT k = 0;
+	INT RevK = 0;
 	INPUT input[10];
-	if (WithSCWA & 0b1000)
+	memset(input, 0, sizeof(input));
+
+	CHAR flag[] = { 0b1000 ,0b0100,0b0010 ,0b0001 };
+	WORD VKArray[] = { VK_SHIFT ,VK_CONTROL ,VK_LWIN,VK_MENU };
+	for (int i = 0; i < 4; i++)
 	{
-		// width shift
-		input[k].ki.wVk = VK_SHIFT;
-		input[k ++].type = INPUT_KEYBOARD;
+		if (WithSCWA & flag[i])
+		{
+			// width shift
+			RevK = KeyCount - 1 - k;
+			input[k].ki.wVk = input[RevK].ki.wVk = VKArray[i];
+			input[RevK].ki.dwFlags = KEYEVENTF_KEYUP;
+			input[k].type = input[RevK].type = INPUT_KEYBOARD;
+			k++;
+		}
 	}
-	if (WithSCWA & 0b0100)
-	{
-		// width shift
-		input[k].ki.wVk = VK_CONTROL;
-		input[k ++].type = INPUT_KEYBOARD;
-	}
-	if (WithSCWA & 0b0010)
-	{
-		// width shift
-		input[k].ki.wVk = VK_MENU;
-		input[k ++].type = INPUT_KEYBOARD;
-	}
-	if (WithSCWA & 0b0001)
-	{
-		// width shift
-		input[k].ki.wVk = VK_LWIN;
-		input[k ++].type = INPUT_KEYBOARD;
-	}
+
+	//按下 向下方向键
 	input[k].ki.wVk = Key;
 	input[k++].type = INPUT_KEYBOARD;
-
-	memset(input, 0, sizeof(input));
-	//按下 向下方向键
-	input[0].ki.wVk = Key;
-	input[0].type = INPUT_KEYBOARD;
 	//松开 向下方向键
-	input[1].ki.wVk = Key; //你的字符
-	input[1].type = INPUT_KEYBOARD;
-	input[1].ki.dwFlags = KEYEVENTF_KEYUP;
+	input[k].ki.wVk = Key; //你的字符
+	input[k].type = INPUT_KEYBOARD;
+	input[k].ki.dwFlags = KEYEVENTF_KEYUP;
 	//该函数合成键盘事件和鼠标事件，用来模拟鼠标或者键盘操作。事件将被插入在鼠标或者键盘处理队列里面
-	SendInput(2, input, sizeof(INPUT));
+	SendInput(KeyCount, input, sizeof(INPUT));
 }
 
 
-WORD ConvertChar2KeyWord(CHAR ch)
+
+// 模拟键盘输入，低四位分别 代表 是否 Shift、Ctrl、Win、Alt
+VOID SimulateKeyArrayInput(WORD  Keys[], CHAR Count)
 {
-	if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
-		return ch;
-	if (ch >= '0' && ch <= '9')
-		return 0x30 + ch - '0';
+	INT RevK = 0;
+	INPUT * input = new INPUT[Count];
+	CHAR KeyCount = Count * 2;
+	memset(input, 0, Count * sizeof(INPUT));
+	WORD VKArray[] = { VK_SHIFT ,VK_CONTROL ,VK_LWIN,VK_MENU };
+	for (int i = 0; i < Count; i++)
+	{
+		RevK = KeyCount - 1 - i;
+		input[i].ki.wVk = input[RevK].ki.wVk = Keys[i];
+		input[RevK].ki.dwFlags = KEYEVENTF_KEYUP;
+		input[i].type = input[RevK].type = INPUT_KEYBOARD;
+	}
+	//该函数合成键盘事件和鼠标事件，用来模拟鼠标或者键盘操作。事件将被插入在鼠标或者键盘处理队列里面
+	SendInput(KeyCount, input, sizeof(INPUT));
+	delete[]input;
+}
 
 
 
-		/*0x30 0 key
-		0x31 1 key
-		0x32 2 key
-		0x33 3 key
-		0x34 4 key
-		0x35 5 key
-		0x36 6 key
-		0x37 7 key
-		0x38 8 key
-		0x39 9 key*/
-
-	BYTE VK_E = 0x45;
-	BYTE VK_R = 0x52;
-
-	printf("%c %c", VK_E, VK_R);
+WORD ConvertChar2KeyWord(string str)
+{
+	static BOOL IsMapInited = FALSE;
+	static map<CHAR, WORD> SpecialCharsMapShift;
+	static map<CHAR, WORD> SpecialCharsMapNoShift;
+	if (IsMapInited == FALSE)
+	{
+		CHAR SpecialCharsShift[][2] = {
+			{ ')',0x30 } ,{ '!',0x31 } ,{ '@',0x32 } ,{ '#',0x33 } ,{ '$',0x34 } ,
+			{ '%',0x35 } ,{ '^',0x36 } ,{ '&',0x37 } ,{ '*',0x38 } ,{ '(',0x39 } ,
+			{ '~',VK_OEM_3 } ,{ '_',VK_OEM_MINUS },
+			{ '{',VK_OEM_4 } ,{ '}',VK_OEM_6 },{ '|',VK_OEM_5 } ,
+			{ ':',VK_OEM_1 } ,{ '"',VK_OEM_7 },
+			{ '<',VK_OEM_COMMA } ,{ '?',VK_OEM_2 } ,
+			{ '>',VK_OEM_PERIOD }
+		};
+		CHAR SpecialCharsNoShift[][2] = {
+			{ '`',VK_OEM_3 } ,{ '-',VK_OEM_MINUS },{ '=',VK_OEM_PLUS } ,{ '+',VK_ADD } ,
+			{ '[',VK_OEM_4 } ,{ ']',VK_OEM_6 },{ '\\',VK_OEM_5 } ,
+			{ ';',VK_OEM_1 } ,{ '\'',VK_OEM_7 },
+			{ ',',VK_OEM_COMMA } ,{ '.',VK_DECIMAL } ,{ '/',VK_OEM_2 }
+		};
+		INT SpecialCharsShiftLength = sizeof(SpecialCharsShift) / (2 * sizeof(char));
+		INT SpecialCharsNoShiftLength = sizeof(SpecialCharsNoShift) / (2 * sizeof(char));
+		for (int i = 0; i < SpecialCharsShiftLength; i++)
+		{
+			SpecialCharsMapShift.insert(pair<CHAR, WORD>(SpecialCharsShift[i][0], SpecialCharsShift[i][1]));
+		}
+		for (int i = 0; i < SpecialCharsNoShiftLength; i++)
+		{
+			SpecialCharsMapNoShift.insert(pair<CHAR, WORD>(SpecialCharsNoShift[i][0], SpecialCharsNoShift[i][1]));
+		}
+		IsMapInited = TRUE;
+	}
+	
+	const char * chrs = str.c_str();
+	vector<WORD> Result;
+	INT Length = str.length();
+	for (int i = 0; i < Length; i++)
+	{
+		if (chrs[i] >= '0' && chrs[i] <= '9')
+			Result.push_back(0x30 + chrs[i] - '0');
+		else if (chrs[i] >= 'a' && chrs[i] <= 'z')
+			Result.push_back(chrs[i] - 'a' + 'A');
+		else if (chrs[i] >= 'A' && chrs[i] <= 'Z')
+		{
+			Result.push_back(VK_SHIFT);
+			Result.push_back(chrs[i]);
+		}
+		else 
+		{
+			map<CHAR, WORD>::iterator l_it;;
+			l_it = SpecialCharsMapShift.find(chrs[i]);
+			if (l_it == SpecialCharsMapShift.end())
+			{
+				Result.push_back(l_it->second);
+			}
+			else
+			{
+				l_it = SpecialCharsMapNoShift.find(chrs[i]);
+				if (l_it == SpecialCharsMapNoShift.end())
+				{
+					Result.push_back(VK_SHIFT);
+					Result.push_back(l_it->second);
+				}
+				else
+				{
+					printf("==========What is this %c\n", chrs[i]);
+				}
+			}
+		}
+		SimulateKeyArrayInput(&Result[0], Result.size());
+		Result.clear();
+	}
 	return 1;
 }
-
