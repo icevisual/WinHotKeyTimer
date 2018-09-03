@@ -402,51 +402,10 @@ HBITMAP ScreenCapture(LPCSTR filename, WORD BitCount, LPRECT lpRect)
 }
 
 // 模拟键盘输入，低四位分别 代表 是否 Shift、Ctrl、Win、Alt
-VOID SimulateKeyInput(WORD Key, CHAR WithSCWA)
-{
-	CHAR KeyCount = 1;
-	for (int i = 0; i < 4; i++)
-		if ((WithSCWA >> i) & 0b1)
-			KeyCount++;
-	KeyCount = KeyCount * 2;
-	INT k = 0;
-	INT RevK = 0;
-	INPUT input[10];
-	memset(input, 0, sizeof(input));
-
-	CHAR flag[] = { 0b1000 ,0b0100,0b0010 ,0b0001 };
-	WORD VKArray[] = { VK_SHIFT ,VK_CONTROL ,VK_LWIN,VK_MENU };
-	for (int i = 0; i < 4; i++)
-	{
-		if (WithSCWA & flag[i])
-		{
-			// width shift
-			RevK = KeyCount - 1 - k;
-			input[k].ki.wVk = input[RevK].ki.wVk = VKArray[i];
-			input[RevK].ki.dwFlags = KEYEVENTF_KEYUP;
-			input[k].type = input[RevK].type = INPUT_KEYBOARD;
-			k++;
-		}
-	}
-
-	//按下 向下方向键
-	input[k].ki.wVk = Key;
-	input[k++].type = INPUT_KEYBOARD;
-	//松开 向下方向键
-	input[k].ki.wVk = Key; //你的字符
-	input[k].type = INPUT_KEYBOARD;
-	input[k].ki.dwFlags = KEYEVENTF_KEYUP;
-	//该函数合成键盘事件和鼠标事件，用来模拟鼠标或者键盘操作。事件将被插入在鼠标或者键盘处理队列里面
-	SendInput(KeyCount, input, sizeof(INPUT));
-}
-
-
-
-// 模拟键盘输入，低四位分别 代表 是否 Shift、Ctrl、Win、Alt
 VOID SimulateKeyArrayInput(WORD  Keys[], CHAR Count)
 {
 	INT RevK = 0;
-	INPUT * input = new INPUT[Count];
+	INPUT input[10] = {0};
 	CHAR KeyCount = Count * 2;
 	memset(input, 0, Count * sizeof(INPUT));
 	WORD VKArray[] = { VK_SHIFT ,VK_CONTROL ,VK_LWIN,VK_MENU };
@@ -459,7 +418,6 @@ VOID SimulateKeyArrayInput(WORD  Keys[], CHAR Count)
 	}
 	//该函数合成键盘事件和鼠标事件，用来模拟鼠标或者键盘操作。事件将被插入在鼠标或者键盘处理队列里面
 	SendInput(KeyCount, input, sizeof(INPUT));
-	delete[]input;
 }
 
 
