@@ -49,7 +49,8 @@ BOOLEAN LoadSrtInstructionFromFile(TCHAR * filename) {
 		return FALSE;
 	}
 	CHAR line[MAX_LINE_CHAR_NUM] = { 0 };
-	INT pos[2] = { 0 }, lLength = 0, smellID = 0;
+	INT pos[2] = { 0 };
+	size_t lLength = 0, smellID = 0;
 	BOOLEAN attemptToGetSmellIDNextLine = FALSE;
 	g_ScriptLength = 0;
 	while (!feof(fp))
@@ -82,7 +83,7 @@ BOOLEAN LoadSrtInstructionFromFile(TCHAR * filename) {
 }
 BOOLEAN SleepWithInterrupt(_In_ DWORD dwMilliseconds, BOOLEAN * Flag)
 {
-	INT Step = 1000;
+	UINT Step = 1000;
 	INT ActuallyStep = 0;
 	while (dwMilliseconds > 0)
 	{

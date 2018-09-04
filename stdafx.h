@@ -59,7 +59,7 @@ VOID SimulateKeyArrayInput(WORD  Keys[], CHAR Count);
 // 将字符转化为 VK
 WORD ConvertChar2KeyWord(CHAR ch);
 
-WORD ConvertChar2KeyWord(string str);
+WORD ConvertChar2KeyWordAndSimulate(string str);
 
 typedef int(*pScentrealmInit)();
 typedef int(*pScentrealmPlaySmell)(int smell, int duration);

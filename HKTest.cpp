@@ -42,7 +42,8 @@ BOOLEAN LoadConfigFromFile(TCHAR * filename) {
 		return FALSE;
 	}
 	CHAR line[255] = { 0 };
-	INT pos[2] = { 0 }, lLength = 0, smellID = 0;
+	INT pos[2] = { 0 }, smellID = 0;
+	size_t lLength = 0;
 	INT EqPos = -1;
 	while (!feof(fp))
 	{
@@ -60,7 +61,7 @@ BOOLEAN LoadConfigFromFile(TCHAR * filename) {
 			value_stream >> value_int;
 			G_Config_Map.insert(pair<string, int>(key_str, value_int));
 		}
-		printf("%s %d\n", line, strlen(line));
+		printf("%s %zd\n", line, strlen(line));
 	}
 	fclose(fp);
 	return TRUE;
