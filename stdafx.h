@@ -14,6 +14,7 @@
 #include "windows.h"
 #include "time.h"
 #include "math.h"
+#include "FileConfig.h"
 #include <iostream>  
 using namespace std;
 
@@ -56,10 +57,12 @@ HBITMAP ScreenCapture(LPCSTR filename, WORD BitCount, LPRECT lpRect);
 
 VOID SimulateKeyArrayInput(WORD  Keys[], CHAR Count);
 
-// 将字符转化为 VK
-WORD ConvertChar2KeyWord(CHAR ch);
-
 WORD ConvertChar2KeyWordAndSimulate(string str);
+
+INT IndexOf(CHAR *data, INT length, CHAR chr);
+
+
+
 
 typedef int(*pScentrealmInit)();
 typedef int(*pScentrealmPlaySmell)(int smell, int duration);

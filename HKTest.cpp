@@ -21,64 +21,7 @@ using namespace std;
 using namespace cv;
 
 static TCHAR g_CunnentTime[64] = { 0 };
-typedef map<string, int> ConfigMAP;
-
-ConfigMAP G_Config_Map;
-
-INT IndexOf(CHAR *data,INT length, CHAR chr)
-{
-	for (int i = 0; i < length; i++)
-		if (data[i] == chr)
-			return i;
-	return -1;
-}
-
-// 从 srt 文件 气味播放指令
-BOOLEAN LoadConfigFromFile(TCHAR * filename) {
-	FILE * fp = NULL;
-	errno_t error = _tfopen_s(&fp, filename, _T("r"));
-	if (0 != error) {
-		ShowLastErrorMsg(L"_tfopen_s");
-		return FALSE;
-	}
-	CHAR line[255] = { 0 };
-	INT pos[2] = { 0 }, smellID = 0;
-	size_t lLength = 0;
-	INT EqPos = -1;
-	while (!feof(fp))
-	{
-		fgets(line, sizeof(line), fp);
-		lLength = strlen(line);
-
-		TrimNewLine(line, lLength);
-		lLength = strlen(line);
-		if ((EqPos = IndexOf(line, lLength, '=')) > 0 && EqPos < lLength - 1)
-		{
-			string key_str(line,EqPos);
-			string value_str(line + EqPos + 1);
-			stringstream value_stream(value_str);
-			int value_int = 0;
-			value_stream >> value_int;
-			G_Config_Map.insert(pair<string, int>(key_str, value_int));
-		}
-		printf("%s %zd\n", line, strlen(line));
-	}
-	fclose(fp);
-	return TRUE;
-}
-
-INT Get_From_G_Config(string key_str,INT Default)
-{
-	printf("Get_From_G_Config (%s %d)\n", key_str.c_str(), Default);
-	ConfigMAP::iterator finded;
-	finded = G_Config_Map.find(key_str);
-	if (finded != G_Config_Map.end())
-		return finded->second;
-	return Default;
-}
-
-
-BOOL G_StopCycle = FALSE;
+static BOOL G_StopCycle = FALSE;
 
 VOID RunSomething(INT trytime)
 {
@@ -315,12 +258,13 @@ INT CountROI_ConfirmYesNo(Mat src)
 	return -1;
 }
 
+static FileConfig g_config;
 
 VOID BugWorker()
 {
-	static INT MaxWait			= Get_From_G_Config("MaxWaitForUseEnabled",10000);
-	static INT AnimationTime	= Get_From_G_Config("SuccessAnimationTime", 4000);
-	static INT FailedTime		= Get_From_G_Config("FailedWaitTime", 1000);
+	static INT MaxWait			= g_config.GetConfig_INT("MaxWaitForUseEnabled",10000);
+	static INT AnimationTime	= g_config.GetConfig_INT("SuccessAnimationTime", 4000);
+	static INT FailedTime		= g_config.GetConfig_INT("FailedWaitTime", 1000);
 
 	RunPrepare();
 
@@ -378,10 +322,10 @@ INT main2121(int argc, TCHAR * argv[]) {
 
 	HANDLE hThread = NULL;	// 多线程句柄
 	TCHAR sourceFilename[] = L"config.conf";
-	LoadConfigFromFile(sourceFilename);
+	g_config.LoadConfigFromFile(sourceFilename);
 	_tprintf(L"Load config ...\n");
 
-	INT MaxCycleCount = Get_From_G_Config("MaxCycleCount", 10000);
+	INT MaxCycleCount = g_config.GetConfig_INT("MaxCycleCount", 10000);
 
 	MSG msg = { 0 };		// 消息
 	DWORD dwThreadId = 0;	// 线程 ID

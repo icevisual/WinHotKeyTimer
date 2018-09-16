@@ -3,84 +3,13 @@
 #include <map>
 using namespace std;
 
-map<string, string> g_Argvs;
-VOID ParseArgvs(int argc, CHAR * argv[])
-{
-	for (int i = 1; i < argc; i++)
-	{
-		string line(argv[i]);
-		INT length = line.length();
-		if (line[0] == '-' && length >= 2)
-		{
-			size_t loc = line.find('=', 0);
-			if (loc != string::npos)
-			{
-				int t = 0;
-				while (t < length && argv[i][t++] == '-');
-				string k_str = line.substr(t - 1, loc - t + 1);
-				string v_str = line.substr(loc + 1);
-				g_Argvs.insert(pair<string, string>(k_str, v_str));
-				printf("K = |%s| V = |%s|\n"
-					, k_str.c_str()
-					, v_str.c_str());
-			}
-			else
-			{
-				// -t 
-				int t = 0;
-				while (t < length && argv[i][t++] == '-');
-				string k_str = line.substr(t - 1);
-				if (argc > i + 1)
-				{
-					string v_str(argv[i + 1]);
-					printf("K = |%s| V = |%s|\n"
-						, k_str.c_str()
-						, v_str.c_str());
-					g_Argvs.insert(pair<string, string>(k_str, v_str));
-					i++;
-				}
-				else
-				{
-					g_Argvs.insert(pair<string, string>(k_str, ""));
-				}
-			}
-		}
-		else
-		{
-			printf("Unresolved Params %s\n", line.c_str());
-		}
-	}
-}
-INT GetSettingInt(string key,INT defaultValue)
-{
-	map<string, string>::iterator finded;
-	finded = g_Argvs.find(key);
-	if (finded != g_Argvs.end())
-	{
-		INT r = 0;
-		stringstream stream(finded->second);
-		stream >> r;
-		return r;
-	}
-	return defaultValue;
-}
-
-string GetSettingStr(string key,string defailtValue)
-{
-	map<string, string>::iterator finded;
-	finded = g_Argvs.find(key);
-	if (finded != g_Argvs.end())
-	{
-		return finded->second;
-	}
-	return defailtValue;
-}
+static FileConfig g_argv;
 
 DWORD WINAPI ThreadFunction(LPVOID lpParam)
 {
 	
-	INT SleepMilliSeconds = GetSettingInt("t", 2000);
-	string SimulateString = GetSettingStr("s", "");
+	INT SleepMilliSeconds = g_argv.GetArgv_INT("t", 2000);
+	string SimulateString = g_argv.GetArgv_string("s", "");
 	if (SimulateString.length() > 0)
 	{
 		Sleep(SleepMilliSeconds);
@@ -90,14 +19,13 @@ DWORD WINAPI ThreadFunction(LPVOID lpParam)
 	}
 	return 0;
 }
-
 
 INT mainCRTStartup(int argc, CHAR * argv[])
 {
-	ParseArgvs(argc, argv);
+	g_argv.ParseArgvs(argc, argv);
 
-	INT SleepMilliSeconds = GetSettingInt("t", 2000);
-	string SimulateString = GetSettingStr("s", "");
+	INT SleepMilliSeconds = g_argv.GetArgv_INT("t", 2000);
+	string SimulateString = g_argv.GetArgv_string("s", "");
 	if (SimulateString.length() > 0)
 	{
 		Sleep(SleepMilliSeconds);
@@ -109,9 +37,9 @@ INT mainCRTStartup(int argc, CHAR * argv[])
 }
 
 
-INT main(int argc, CHAR * argv[]) 
+INT mainSUI(int argc, CHAR * argv[]) 
 {
-	ParseArgvs(argc, argv);
+	g_argv.ParseArgvs(argc, argv);
 
 	DWORD   dwThreadId;
 	HANDLE  hThread;

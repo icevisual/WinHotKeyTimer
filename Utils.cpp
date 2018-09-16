@@ -540,3 +540,12 @@ WORD ConvertChar2KeyWordAndSimulate(string str)
 	}
 	return 1;
 }
+
+
+INT IndexOf(CHAR *data, INT length, CHAR chr)
+{
+	for (int i = 0; i < length; i++)
+		if (data[i] == chr)
+			return i;
+	return -1;
+}
