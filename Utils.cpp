@@ -443,14 +443,13 @@ HBITMAP ScreenCapture(LPCSTR filename, WORD BitCount, LPRECT lpRect)
 	return hBitmap;
 }
 
-// 模拟键盘输入，低四位分别 代表 是否 Shift、Ctrl、Win、Alt
+// 模拟键盘输入
 VOID SimulateKeyArrayInput(WORD  Keys[], CHAR Count)
 {
 	INT RevK = 0;
 	INPUT input[10] = {0};
 	CHAR KeyCount = Count * 2;
 	memset(input, 0, Count * sizeof(INPUT));
-	WORD VKArray[] = { VK_SHIFT ,VK_CONTROL ,VK_LWIN,VK_MENU };
 	for (int i = 0; i < Count; i++)
 	{
 		RevK = KeyCount - 1 - i;
@@ -461,8 +460,6 @@ VOID SimulateKeyArrayInput(WORD  Keys[], CHAR Count)
 	//该函数合成键盘事件和鼠标事件，用来模拟鼠标或者键盘操作。事件将被插入在鼠标或者键盘处理队列里面
 	SendInput(KeyCount, input, sizeof(INPUT));
 }
-
-
 
 WORD ConvertChar2KeyWordAndSimulate(string str)
 {

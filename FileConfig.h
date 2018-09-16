@@ -20,6 +20,6 @@ public:
 
 	VOID ParseArgvs(int argc, CHAR * argv[]);
 	INT GetArgv_INT(string key, INT defaultValue);
-	string GetArgv_string(string key, string defailtValue)
+	string GetArgv_string(string key, string defailtValue);
 
 };

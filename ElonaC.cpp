@@ -25,6 +25,7 @@ static FileConfig g_config;
 
 INT main(int argc, TCHAR * argv[]) {
 
+
 	HWND hWnd = NULL;		// 窗口句柄
 	HANDLE hThread = NULL;	// 多线程句柄
 	TCHAR sourceFilename[] = L"config.conf";
@@ -47,7 +48,7 @@ INT main(int argc, TCHAR * argv[]) {
 	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_NUMPAD1);
 	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_NUMPAD2);
 	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
-	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
+	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, 0x33);
 //	LocalRegisterHotKey(hWnd, m_HotKeyId9, MOD_NOREPEAT, VK_NUMPAD9);
 	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, VK_NUMPAD5);
 	LocalRegisterHotKey(hWnd, m_HotKeyId7, MOD_NOREPEAT, VK_NUMPAD7);
@@ -85,7 +86,13 @@ INT main(int argc, TCHAR * argv[]) {
 				break;
 			}
 			else if (m_HotKeyId4 == msg.wParam) {
-				
+		//		Sleep(3000);
+				WORD k[] = { VK_ESCAPE };
+				SimulateKeyArrayInput(k, 1);
+				Sleep(200);
+		/*		SimulateKeyArrayInput(k, 1);
+				Sleep(200);
+				ConvertChar2KeyWordAndSimulate("a");*/
 			}
 			else if (m_HotKeyId5 == msg.wParam) {
 				
