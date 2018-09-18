@@ -10,6 +10,12 @@ using namespace std;
 
 // 从 srt 文件 气味播放指令
 BOOLEAN FileConfig::LoadConfigFromFile(TCHAR * filename) {
+
+	if (_taccess(filename, 0) == -1)
+	{
+		wprintf(L"Config File (%s) Not Found\n", filename);
+		return FALSE;
+	}
 	FILE * fp = NULL;
 	errno_t error = _tfopen_s(&fp, filename, _T("r"));
 	if (0 != error) {

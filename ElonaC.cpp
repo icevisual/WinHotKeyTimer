@@ -23,6 +23,74 @@ static TCHAR g_CunnentTime[64] = { 0 };
 static BOOL G_StopCycle = FALSE;
 static FileConfig g_config;
 
+
+
+VOID GetIOR(int x,int y ,int w,int h)
+{ // GetIOR(127, 540 ,676 ,68);
+	// 127, 540 ,676 ,68
+	Mat image = cv::imread("../data/ior.bmp");
+
+	if (x + w > image.cols)
+	{
+		w = image.cols - x;
+	}
+	if (y + h > image.rows)
+	{
+		h = image.cols - y;
+	}
+
+	Mat imageROI = image(Rect(x,y,w,h));
+	namedWindow("src");
+	imshow("src", imageROI);
+	imwrite("../data/ior1.bmp", imageROI);
+	waitKey(0);
+}
+
+
+VOID DetectSubImageLocation(Mat img,Mat templ)
+{
+	Mat img_display;
+	img.copyTo(img_display);
+	int result_cols = img.cols - templ.cols + 1;
+	int result_rows = img.rows - templ.rows + 1;
+
+
+	
+}
+// Method: \n 0: SQDIFF \n 1: SQDIFF NORMED \n 2: TM CCORR \n 3: TM CCORR NORMED \n 4: TM COEFF \n 5: TM COEFF NORMED
+Point GetMatchedStartPoint(Mat img, Mat templ, int match_method, BOOL show_img = FALSE)
+{
+	Mat img_display;
+	Mat result;
+	img.copyTo(img_display);
+	int result_cols = img.cols - templ.cols + 1;
+	int result_rows = img.rows - templ.rows + 1;
+	result.create(result_rows, result_cols, CV_32FC1);
+	matchTemplate(img, templ, result, match_method);
+	normalize(result, result, 0, 1, NORM_MINMAX, -1, Mat());
+	double minVal; double maxVal;
+	Point minLoc; Point maxLoc;
+	Point matchLoc;
+	minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
+	if (match_method == TM_SQDIFF || match_method == TM_SQDIFF_NORMED)
+	{
+		matchLoc = minLoc;
+	}
+	else
+	{
+		matchLoc = maxLoc;
+	}
+	if (show_img == TRUE)
+	{
+		rectangle(img_display, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar(0, 0, 255), 2, 8, 0);
+		rectangle(result, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar::all(0), 2, 8, 0);
+		imshow("MT:Source Image", img_display);
+		imshow("MT:matchTemplate Result Image", result);
+	}
+	return matchLoc;
+}
+
+
 INT main(int argc, TCHAR * argv[]) {
 
 
@@ -48,7 +116,7 @@ INT main(int argc, TCHAR * argv[]) {
 	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_NUMPAD1);
 	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_NUMPAD2);
 	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
-	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, 0x33);
+	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
 //	LocalRegisterHotKey(hWnd, m_HotKeyId9, MOD_NOREPEAT, VK_NUMPAD9);
 	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, VK_NUMPAD5);
 	LocalRegisterHotKey(hWnd, m_HotKeyId7, MOD_NOREPEAT, VK_NUMPAD7);
@@ -86,22 +154,40 @@ INT main(int argc, TCHAR * argv[]) {
 				break;
 			}
 			else if (m_HotKeyId4 == msg.wParam) {
-		//		Sleep(3000);
-				WORD k[] = { VK_ESCAPE };
-				SimulateKeyArrayInput(k, 1);
-				Sleep(200);
-		/*		SimulateKeyArrayInput(k, 1);
-				Sleep(200);
-				ConvertChar2KeyWordAndSimulate("a");*/
+
+				int x = 0, y = 0, w = 0, h = 0;
+				while (~scanf_s("%d %d %d %d", &x, &y, &w, &h))
+				{
+					if (x < 0 || y < 0 || w < 0 || h < 0)
+						break;
+					GetIOR(x, y ,w ,h);
+				}
 			}
 			else if (m_HotKeyId5 == msg.wParam) {
-				
+				DOMatch("../data/ior.bmp", "../data/threshold.jpg");
 			}
 			else if (m_HotKeyId7 == msg.wParam) {
-				LPSTR addr = "ScreenCapture.png";
+
+				Mat imag, result;
+				imag = imread("../data/ior1.bmp", 0);	//将读入的彩色图像直接以灰度图像读入
+				namedWindow("原图", 1);
+				imshow("原图", imag);
+				result = imag.clone();
+				//进行二值化处理，选择30，200.0为阈值
+				threshold(imag, result, 50.0, 255, CV_THRESH_BINARY);
+				namedWindow("二值化图像");
+				imshow("二值化图像", result);
+				imwrite("../data/threshold.jpg", result);
+
+				Mat img = imread("../data/threshold.jpg", IMREAD_COLOR);
+				Mat templ = imread("../data/empty.jpg", IMREAD_COLOR); 
+				Point MinPoint = GetMatchedStartPoint(img, templ,0);
+				printf("matchLoc = (%d,%d)\n", MinPoint.x, MinPoint.y);
+				waitKey(0);
+				/*LPSTR addr = "ScreenCapture.png";
 				ScreenCapture(addr, 32, NULL);
 				Mat src = imread("ScreenCapture.png");
-
+*/
 			}
 			else if (m_HotKeyId8 == msg.wParam) {
 				G_StopCycle = TRUE;

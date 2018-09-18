@@ -17,7 +17,6 @@
 #include "FileConfig.h"
 #include <iostream>  
 using namespace std;
-
 // TODO:  在此处引用程序需要的其他头文件
 
 INT GetMilliSecondOfDay();
@@ -62,6 +61,7 @@ WORD ConvertChar2KeyWordAndSimulate(string str);
 INT IndexOf(CHAR *data, INT length, CHAR chr);
 
 
+int DOMatch(string img_name, string templ_name);
 
 
 typedef int(*pScentrealmInit)();
