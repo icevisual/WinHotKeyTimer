@@ -57,6 +57,8 @@ VOID DetectSubImageLocation(Mat img,Mat templ)
 
 	
 }
+
+
 // Method: \n 0: SQDIFF \n 1: SQDIFF NORMED \n 2: TM CCORR \n 3: TM CCORR NORMED \n 4: TM COEFF \n 5: TM COEFF NORMED
 Point GetMatchedStartPoint(Mat img, Mat templ, int match_method, BOOL show_img = FALSE)
 {
@@ -91,6 +93,143 @@ Point GetMatchedStartPoint(Mat img, Mat templ, int match_method, BOOL show_img =
 }
 
 
+// Method: \n 0: SQDIFF \n 1: SQDIFF NORMED \n 2: TM CCORR \n 3: TM CCORR NORMED \n 4: TM COEFF \n 5: TM COEFF NORMED
+Point GetMatchedStartPoint1(Mat img, Mat templ, int match_method)
+{
+	Mat result;
+	int result_cols = img.cols - templ.cols + 1;
+	int result_rows = img.rows - templ.rows + 1;
+	result.create(result_rows, result_cols, CV_32FC1);
+	matchTemplate(img, templ, result, match_method);
+	normalize(result, result, 0, 1, NORM_MINMAX, -1, Mat());
+	double minVal; double maxVal;
+	Point minLoc; Point maxLoc;
+	Point matchLoc;
+	minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
+	if (match_method == TM_SQDIFF || match_method == TM_SQDIFF_NORMED)
+	{
+		matchLoc = minLoc;
+	}
+	else
+	{
+		matchLoc = maxLoc;
+	}
+	return matchLoc;
+}
+
+VOID SplitFontImgTest(Mat TextSrc)
+{
+	INT TextPaddingTop = 3;
+	INT TextPaddingLeft = 30;
+	INT TextHeight = 16;
+	INT TextYOffset = 15;
+	INT Width = TextSrc.cols - 30;
+	Mat Rows[4];
+	Mat templ = imread("../data/empty.jpg", IMREAD_COLOR);
+	INT Offset = TextSrc.rows;
+	INT TitleHeight = 40;
+	imshow("TextSrc", TextSrc);
+	moveWindow("TextSrc",0,0);
+	for (int i = 0; i < 4; i++)
+	{
+		Offset = TextSrc.rows;
+		Mat temp_gray;
+		Mat temp_binary;
+		Mat temp_match;
+		Mat temp = TextSrc(Rect(TextPaddingLeft, 3 + i * TextYOffset, Width, TextHeight));
+		
+		cvtColor(temp, temp_gray, CV_BGR2GRAY);
+		
+		threshold(temp_gray, temp_binary, 70 + i * 25, 255, CV_THRESH_BINARY);
+
+		cvtColor(temp_binary, temp_match, CV_GRAY2BGR);
+		cv::String temp_window = "temp";
+		cv::String  gray_window =  "gray";
+		cv::String binary_window = "binary";
+		cv::String  match_window =  "match";
+		cv::String  result_window = "result";
+		temp_window += '0' + i;
+		gray_window += '0' + i;
+		binary_window += '0' + i;
+		match_window += '0' + i;
+		result_window += '0' + i;
+		imshow(temp_window, temp);
+		imshow(gray_window, temp_gray);
+		imshow(binary_window, temp_binary);
+		imshow(match_window, temp_match);
+		Offset += TitleHeight;
+		moveWindow(temp_window, i * 400, Offset);
+		Offset += TitleHeight + temp.rows;
+		moveWindow(gray_window, i * 400, Offset);
+		Offset += TitleHeight + temp_gray.rows;
+		moveWindow(binary_window, i * 400, Offset);
+		Offset += TitleHeight + temp_binary.rows;
+		moveWindow(match_window, i * 400, Offset);
+	
+		for (int j = 0; j < 6; j++)
+		{
+			result_window = "result";
+			result_window += '0' + i;
+			Point Loc = GetMatchedStartPoint1(temp_match, templ, j);
+			if (Loc.x > 50)
+			{
+				result_window += '0' + j;
+				
+				//	Rows[i] = TextSrc(Rect(TextPaddingLeft, 3 + i * TextYOffset, Loc.x, TextHeight));
+				Rows[i] = temp_match(Rect(0, 0, Loc.x, TextHeight));
+
+				imshow(result_window, Rows[i]);
+				Offset += TitleHeight + temp_match.rows;
+				moveWindow(result_window, i * 400, Offset);
+				cv::String tname = "../data/Split/";
+				tname += ('0' + i);
+				tname += ".jpg";
+				printf("%s \n", tname.c_str());
+				imwrite(tname, Rows[i]);
+			}
+			printf("%d %d \n", Loc.x, Loc.y);
+		}
+	}
+	waitKey();
+}
+
+
+
+VOID SplitFontImg(Mat TextSrc)
+{
+	INT TextPaddingTop = 3;
+	INT TextPaddingLeft = 30;
+	INT TextHeight = 16;
+	INT TextYOffset = 15;
+	INT Width = TextSrc.cols - 30;
+	Mat Rows[4];
+	Mat templ = imread("../data/empty.jpg", IMREAD_COLOR);
+	INT Offset = TextSrc.rows;
+	INT TitleHeight = 40;
+	for (int i = 0; i < 4; i++)
+	{
+		Offset = TextSrc.rows;
+		Mat temp_gray;
+		Mat temp_binary;
+		Mat temp_match;
+		Mat temp = TextSrc(Rect(TextPaddingLeft, 3 + i * TextYOffset, Width, TextHeight));
+		cvtColor(temp, temp_gray, CV_BGR2GRAY);
+		threshold(temp_gray, temp_binary, 70 + i * 25, 255, CV_THRESH_BINARY);
+		cvtColor(temp_binary, temp_match, CV_GRAY2BGR);
+		Point Loc = GetMatchedStartPoint1(temp_match, templ, j);
+		if (Loc.x > 50)
+		{
+			Rows[i] = temp_match(Rect(0, 0, Loc.x, TextHeight));
+			cv::String tname = "../data/Split/";
+			tname += ('0' + i);
+			tname += ".jpg";
+			printf("%s \n", tname.c_str());
+			imwrite(tname, Rows[i]);
+		}
+		printf("%d %d \n", Loc.x, Loc.y);
+	}
+}
+
 INT main(int argc, TCHAR * argv[]) {
 
 
@@ -109,27 +248,29 @@ INT main(int argc, TCHAR * argv[]) {
 	ATOM m_HotKeyId3 = GlobalAddAtom(_T("WinHotKeySRCtl-Terminate")) - 0xc000;
 	ATOM m_HotKeyId4 = GlobalAddAtom(_T("WinHotKeySRCtl-Simulate")) - 0xc000;
 	ATOM m_HotKeyId5 = GlobalAddAtom(_T("WinHotKeySRCtl-RepeatSimulate")) - 0xc000;
+	ATOM m_HotKeyId6 = GlobalAddAtom(_T("WinHotKeySRCtl-WhatIdThis")) - 0xc000;
 	ATOM m_HotKeyId7 = GlobalAddAtom(_T("WinHotKeySRCtl-ScreenShot")) - 0xc000;
 	ATOM m_HotKeyId8 = GlobalAddAtom(_T("WinHotKeySRCtl-StopCycle")) - 0xc000;
 	ATOM m_HotKeyId9 = GlobalAddAtom(_T("WinHotKeySRCtl-Test")) - 0xc000;
-	_tprintf(L"Register HotKeys ...\n");
+	_tprintf(L"Register HotKeys ... VK_NUMPAD1 ~ VK_NUMPAD9\n");
 	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_NUMPAD1);
 	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_NUMPAD2);
 	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
 	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
-//	LocalRegisterHotKey(hWnd, m_HotKeyId9, MOD_NOREPEAT, VK_NUMPAD9);
 	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, VK_NUMPAD5);
+	LocalRegisterHotKey(hWnd, m_HotKeyId6, MOD_NOREPEAT, VK_NUMPAD6);
 	LocalRegisterHotKey(hWnd, m_HotKeyId7, MOD_NOREPEAT, VK_NUMPAD7);
 	LocalRegisterHotKey(hWnd, m_HotKeyId8, MOD_NOREPEAT, VK_NUMPAD8);
+	LocalRegisterHotKey(hWnd, m_HotKeyId9, MOD_NOREPEAT, VK_NUMPAD9);
 
 	_tprintf(L"Press Key `1` To Start 1.bat \n");
 	_tprintf(L"Press Key `2` To Start 2.bat \n");
 	_tprintf(L"Press Key `3` To Exit\n");
-	_tprintf(L"Press Key `4` To Ka Bug\n");
-	_tprintf(L"Press Key `5` To Cycle Ka Bug 50\n");
+	//_tprintf(L"Press Key `4` To Ka Bug\n");
+	//_tprintf(L"Press Key `5` To Cycle Ka Bug 50\n");
 	//_tprintf(L"Press Key `6` To Exit\n");
-	_tprintf(L"Press Key `7` To Scan ScreenCapture\n");
-	_tprintf(L"Press Key `8` To Stop Cycle Ka Bug\n");
+	//_tprintf(L"Press Key `7` To Scan ScreenCapture\n");
+	//_tprintf(L"Press Key `8` To Stop Cycle Ka Bug\n");
 	//_tprintf(L"Press Key `9` To Ka Bug Key Frame\n");
 
 
@@ -165,6 +306,10 @@ INT main(int argc, TCHAR * argv[]) {
 			}
 			else if (m_HotKeyId5 == msg.wParam) {
 				DOMatch("../data/ior.bmp", "../data/threshold.jpg");
+			}
+			else if (m_HotKeyId6 == msg.wParam) {
+				Mat Src = imread("../data/ior.bmp", IMREAD_COLOR);
+				SplitFontImgTest(Src);
 			}
 			else if (m_HotKeyId7 == msg.wParam) {
 
