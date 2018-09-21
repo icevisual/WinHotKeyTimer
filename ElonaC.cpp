@@ -46,19 +46,6 @@ VOID GetIOR(int x,int y ,int w,int h)
 	waitKey(0);
 }
 
-
-VOID DetectSubImageLocation(Mat img,Mat templ)
-{
-	Mat img_display;
-	img.copyTo(img_display);
-	int result_cols = img.cols - templ.cols + 1;
-	int result_rows = img.rows - templ.rows + 1;
-
-
-	
-}
-
-
 // Method: \n 0: SQDIFF \n 1: SQDIFF NORMED \n 2: TM CCORR \n 3: TM CCORR NORMED \n 4: TM COEFF \n 5: TM COEFF NORMED
 Point GetMatchedStartPoint(Mat img, Mat templ, int match_method, BOOL show_img = FALSE)
 {
@@ -194,15 +181,26 @@ VOID SplitFontImgTest(Mat TextSrc)
 }
 
 
+VOID SplitFontImgTest_AutoIOR(string filename)
+{
+	Mat Src = imread(filename, IMREAD_COLOR);
+	Mat IOR;
+	if (Src.rows > 100)
+		IOR = Src(Rect(127, 540, 676, 68));
+	else
+		IOR = Src;
+	SplitFontImgTest(IOR);
+}
+
 
 VOID SplitFontImg(Mat TextSrc)
 {
 	INT TextPaddingTop = 3;
 	INT TextPaddingLeft = 30;
 	INT TextHeight = 16;
-	INT TextYOffset = 15;
+	INT TextYOffset = 16;
 	INT Width = TextSrc.cols - 30;
-	Mat Rows[4];
+	Mat Rows;
 	Mat templ = imread("../data/empty.jpg", IMREAD_COLOR);
 	INT Offset = TextSrc.rows;
 	INT TitleHeight = 40;
@@ -216,29 +214,41 @@ VOID SplitFontImg(Mat TextSrc)
 		cvtColor(temp, temp_gray, CV_BGR2GRAY);
 		threshold(temp_gray, temp_binary, 70 + i * 25, 255, CV_THRESH_BINARY);
 		cvtColor(temp_binary, temp_match, CV_GRAY2BGR);
-		Point Loc = GetMatchedStartPoint1(temp_match, templ, j);
+		Point Loc = GetMatchedStartPoint1(temp_match, templ, 0);
 		if (Loc.x > 50)
 		{
-			Rows[i] = temp_match(Rect(0, 0, Loc.x, TextHeight));
-			cv::String tname = "../data/Split/";
-			tname += ('0' + i);
-			tname += ".jpg";
-			printf("%s \n", tname.c_str());
-			imwrite(tname, Rows[i]);
+			Rows = temp_match(Rect(0, 0, Loc.x, TextHeight));
+			CHAR name[50] = { 0 };
+			sprintf_s(name,"../data/Temp/%d.jpg",GetMilliSecondOfDay());
+			cv::String tname(name);
+			imwrite(tname, Rows);
+			CHAR new_name[250] = { 0 };
+			string MD5Value = FileDigest(tname);
+			sprintf_s(new_name, "../data/Split/%s.jpg", MD5Value.c_str());
+			int r = rename(name, new_name);
+			printf("MD5=%s rename=%d\n", MD5Value.c_str(),r);
 		}
 		printf("%d %d \n", Loc.x, Loc.y);
 	}
 }
 
-INT main(int argc, TCHAR * argv[]) {
+VOID GetScreenCaptureWithIOR(LPSTR addr)
+{
+	RECT rect;
+	rect.left = 127;
+	rect.top = 540;
+	rect.right = 127 + 676;
+	rect.bottom = 540 + 68;
+	ScreenCapture(addr, 32, &rect);
+}
 
+INT main(int argc, TCHAR * argv[]) {
 
 	HWND hWnd = NULL;		// 窗口句柄
 	HANDLE hThread = NULL;	// 多线程句柄
 	TCHAR sourceFilename[] = L"config.conf";
 	g_config.LoadConfigFromFile(sourceFilename);
 	_tprintf(L"Load config ...\n");
-
 
 	MSG msg = { 0 };		// 消息
 	DWORD dwThreadId = 0;	// 线程 ID
@@ -257,7 +267,7 @@ INT main(int argc, TCHAR * argv[]) {
 	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_NUMPAD2);
 	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
 	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
-	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, VK_NUMPAD5);
+	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, 0x33);
 	LocalRegisterHotKey(hWnd, m_HotKeyId6, MOD_NOREPEAT, VK_NUMPAD6);
 	LocalRegisterHotKey(hWnd, m_HotKeyId7, MOD_NOREPEAT, VK_NUMPAD7);
 	LocalRegisterHotKey(hWnd, m_HotKeyId8, MOD_NOREPEAT, VK_NUMPAD8);
@@ -305,11 +315,16 @@ INT main(int argc, TCHAR * argv[]) {
 				}
 			}
 			else if (m_HotKeyId5 == msg.wParam) {
-				DOMatch("../data/ior.bmp", "../data/threshold.jpg");
+				CHAR * addr = "../data/sc.bmp";
+			//	CHAR * addr = "../data/mix.bmp";
+				GetScreenCaptureWithIOR(addr);
+				Mat Src = imread(addr, IMREAD_COLOR);
+
+			//	Mat IOR = Src(Rect(127, 540, 676, 68));
+				SplitFontImg(Src);
 			}
 			else if (m_HotKeyId6 == msg.wParam) {
-				Mat Src = imread("../data/ior.bmp", IMREAD_COLOR);
-				SplitFontImgTest(Src);
+				SplitFontImgTest_AutoIOR("../data/mix.bmp");
 			}
 			else if (m_HotKeyId7 == msg.wParam) {
 

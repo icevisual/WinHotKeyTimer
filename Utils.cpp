@@ -50,6 +50,26 @@ void SetConsoleColor(ConsoleForegroundColor foreColor = enmCFC_White, ConsoleBac
 	SetConsoleTextAttribute(handle, foreColor | backColor);
 }
 
+string FileDigest(const string &file)
+{
+	ifstream in(file.c_str(), ios::binary);
+	if (!in)
+		return "";
+
+	MD5 md5;
+	std::streamsize length;
+	char buffer[1024];
+	while (!in.eof()) {
+		in.read(buffer, 1024);
+		length = in.gcount();
+		if (length > 0)
+			md5.update(buffer, length);
+	}
+	in.close();
+	return md5.toString();
+}
+
+
 INT GetMilliSecondOfDay()
 {
 	SYSTEMTIME sys;

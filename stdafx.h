@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <strsafe.h>
-
+#include "MD5.h"
 #include "windows.h"
 #include "time.h"
 #include "math.h"
@@ -60,9 +60,9 @@ WORD ConvertChar2KeyWordAndSimulate(string str);
 
 INT IndexOf(CHAR *data, INT length, CHAR chr);
 
-
 int DOMatch(string img_name, string templ_name);
 
+string FileDigest(const string &file);
 
 typedef int(*pScentrealmInit)();
 typedef int(*pScentrealmPlaySmell)(int smell, int duration);
