@@ -108,11 +108,13 @@ VOID SplitFontImgTest(Mat TextSrc)
 {
 	INT TextPaddingTop = 3;
 	INT TextPaddingLeft = 30;
-	INT TextHeight = 16;
-	INT TextYOffset = 15;
+	INT TextHeight = 15;
+	INT TextYOffset = 4;
 	INT Width = TextSrc.cols - 30;
 	Mat Rows[4];
-	Mat templ = imread("../data/empty.jpg", IMREAD_COLOR);
+
+	Mat empty = imread("../data/empty.jpg", IMREAD_COLOR);
+	Mat templ = empty(Rect(0,0, empty.cols, TextHeight));
 	INT Offset = TextSrc.rows;
 	INT TitleHeight = 40;
 	imshow("TextSrc", TextSrc);
@@ -123,7 +125,7 @@ VOID SplitFontImgTest(Mat TextSrc)
 		Mat temp_gray;
 		Mat temp_binary;
 		Mat temp_match;
-		Mat temp = TextSrc(Rect(TextPaddingLeft, 3 + i * TextYOffset, Width, TextHeight));
+		Mat temp = TextSrc(Rect(TextPaddingLeft, TextYOffset + i * TextHeight, Width, TextHeight));
 		
 		cvtColor(temp, temp_gray, CV_BGR2GRAY);
 		
@@ -160,19 +162,18 @@ VOID SplitFontImgTest(Mat TextSrc)
 			Point Loc = GetMatchedStartPoint1(temp_match, templ, j);
 			if (Loc.x > 50)
 			{
+				// Show Image
 				result_window += '0' + j;
-				
-				//	Rows[i] = TextSrc(Rect(TextPaddingLeft, 3 + i * TextYOffset, Loc.x, TextHeight));
 				Rows[i] = temp_match(Rect(0, 0, Loc.x, TextHeight));
-
 				imshow(result_window, Rows[i]);
 				Offset += TitleHeight + temp_match.rows;
 				moveWindow(result_window, i * 400, Offset);
-				cv::String tname = "../data/Split/";
-				tname += ('0' + i);
-				tname += ".jpg";
-				printf("%s \n", tname.c_str());
-				imwrite(tname, Rows[i]);
+
+				//cv::String tname = "../data/Split/";
+				//tname += ('0' + i);
+				//tname += ".jpg";
+				//printf("%s \n", tname.c_str());
+				//imwrite(tname, Rows[i]);
 			}
 			printf("%d %d \n", Loc.x, Loc.y);
 		}
@@ -197,11 +198,12 @@ VOID SplitFontImg(Mat TextSrc)
 {
 	INT TextPaddingTop = 3;
 	INT TextPaddingLeft = 30;
-	INT TextHeight = 16;
-	INT TextYOffset = 16;
+	INT TextHeight = 15;
+	INT TextYOffset = 4;
 	INT Width = TextSrc.cols - 30;
 	Mat Rows;
-	Mat templ = imread("../data/empty.jpg", IMREAD_COLOR);
+	Mat empty = imread("../data/empty.jpg", IMREAD_COLOR);
+	Mat templ = empty(Rect(0, 0, empty.cols, TextHeight));
 	INT Offset = TextSrc.rows;
 	INT TitleHeight = 40;
 	for (int i = 0; i < 4; i++)
@@ -210,7 +212,7 @@ VOID SplitFontImg(Mat TextSrc)
 		Mat temp_gray;
 		Mat temp_binary;
 		Mat temp_match;
-		Mat temp = TextSrc(Rect(TextPaddingLeft, 3 + i * TextYOffset, Width, TextHeight));
+		Mat temp = TextSrc(Rect(TextPaddingLeft, TextYOffset + i * TextHeight, Width, TextHeight));
 		cvtColor(temp, temp_gray, CV_BGR2GRAY);
 		threshold(temp_gray, temp_binary, 70 + i * 25, 255, CV_THRESH_BINARY);
 		cvtColor(temp_binary, temp_match, CV_GRAY2BGR);
@@ -218,6 +220,8 @@ VOID SplitFontImg(Mat TextSrc)
 		if (Loc.x > 50)
 		{
 			Rows = temp_match(Rect(0, 0, Loc.x, TextHeight));
+
+
 			CHAR name[50] = { 0 };
 			sprintf_s(name,"../data/Temp/%d.jpg",GetMilliSecondOfDay());
 			cv::String tname(name);
@@ -324,7 +328,7 @@ INT main(int argc, TCHAR * argv[]) {
 				SplitFontImg(Src);
 			}
 			else if (m_HotKeyId6 == msg.wParam) {
-				SplitFontImgTest_AutoIOR("../data/mix.bmp");
+				SplitFontImgTest_AutoIOR("../data/Screen.bmp");
 			}
 			else if (m_HotKeyId7 == msg.wParam) {
 
