@@ -39,6 +39,8 @@ INT GetSmellID(CHAR * taregt, INT length);
 // 获取 srt 文件中 时间段（毫秒）
 BOOLEAN GetSrtTimePeriod(CHAR * string, INT length, INT  * StartEnd);
 
+
+UINT64 GetTimestamp();
 // 将毫秒转为 HMSF 格式的时间字符串
 VOID MilliSecond2HMSF(INT ms, TCHAR * msString);
 
