@@ -24,28 +24,55 @@ static TCHAR g_CunnentTime[64] = { 0 };
 static BOOL G_StopCycle = FALSE;
 static FileConfig g_config;
 
-
-
-static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
+static VOID ShowIOR_ItemsWithInput()
 {
-	INT * a = (INT * )lpParam;
-
-
-
 	int x = 0, y = 0, w = 0, h = 0;
 
 	Mat Src = imread("../data/Src/shop.bmp");
-
 	while (~scanf_s("%d %d %d %d", &x, &y, &w, &h))
 	{
 		if (x < 0 || y < 0 || w < 0 || h < 0)
 			break;
 		ShowIOR_Items(Src, x, y, w, h);
 	}
+}
 
-	printf("%d\n",a[0]);
-	Sleep(3333);
-	printf("MyThreadFunction %d\n", a[2]);
+
+
+static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
+{
+	Mat image = imread("../data/Src/shop.bmp");
+	// First Item TopLeft in ScreenCapture 170 165 542 19
+	Rect TopLeftRect(170,165,542,19);
+
+	DoThreshold(image, image, 150, 255);
+
+	namedWindow("SRC");
+	moveWindow("SRC", 600,  60);
+	imshow("SRC", image);
+
+	Mat Empty(19, 6, CV_32FC1, Scalar::all(0));
+
+	int count = 0;
+	for (int i = TopLeftRect.y; i < image.rows - TopLeftRect.height; i += TopLeftRect.height)
+	{
+		Mat imageROI = image(Rect(TopLeftRect.x, i, TopLeftRect.width, TopLeftRect.height));
+		CHAR name[50] = { 0 };
+		sprintf_s(name, "IOR-%d", i);
+		namedWindow(name);
+		moveWindow(name, 0, count * 60);
+		imshow(name, imageROI);
+
+
+		Point MinLoc = GetMatchedStartPointOnly(imageROI, Empty,0);
+		rectangle(imageROI, MinLoc, Point(MinLoc.x + Empty.cols, MinLoc.y + Empty.rows), Scalar(0, 0, 255), 2, 8, 0);
+
+		count++;
+		if (count > 15)
+			break;
+	}
+	waitKey();
+
 	return 0;
 }
 
@@ -102,7 +129,7 @@ INT main(int argc, TCHAR * argv[]) {
 	//_tprintf(L"Press Key `8` To Stop Cycle Ka Bug\n");
 	//_tprintf(L"Press Key `9` To Ka Bug Key Frame\n");
 
-
+//	Mat Empty(6,19, CV_8UC1,Scalar::all(0));
 
 
 	while (GetMessage(&msg, NULL, 0, 0) != 0) {

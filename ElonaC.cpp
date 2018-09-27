@@ -61,6 +61,12 @@ VOID ShowIOR_Items(Mat image ,int x, int y, int w, int h)
 		namedWindow(name);
 		moveWindow(name,0, count * 60);
 		imshow(name, imageROI);
+
+
+		CHAR store_name[100] = { 0 };
+		sprintf_s(store_name, "../data/IOR/%s.bmp", name);
+		imwrite(store_name, imageROI);
+
 		count++;
 		if (count > 15)
 			break;
