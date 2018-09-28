@@ -51,7 +51,8 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 	moveWindow("SRC", 600,  60);
 	imshow("SRC", image);
 
-	Mat Empty(19, 6, CV_32FC1, Scalar::all(0));
+	Mat Empty = imread("../data/IOR/IOR-backspace.bmp");
+	DoThreshold(Empty, Empty, 150, 255);
 
 	int count = 0;
 	for (int i = TopLeftRect.y; i < image.rows - TopLeftRect.height; i += TopLeftRect.height)
@@ -61,11 +62,11 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 		sprintf_s(name, "IOR-%d", i);
 		namedWindow(name);
 		moveWindow(name, 0, count * 60);
-		imshow(name, imageROI);
-
-
+	
 		Point MinLoc = GetMatchedStartPointOnly(imageROI, Empty,0);
-		rectangle(imageROI, MinLoc, Point(MinLoc.x + Empty.cols, MinLoc.y + Empty.rows), Scalar(0, 0, 255), 2, 8, 0);
+		printf("MinLoc = (%d, %d)\n", MinLoc.x, MinLoc.y);
+	//	rectangle(imageROI, MinLoc, Point(MinLoc.x + Empty.cols, MinLoc.y + Empty.rows), Scalar(0, 0, 255), 2, 8, 0);
+		imshow(name, imageROI(Rect(0,0, MinLoc.x + 3, imageROI.rows)));
 
 		count++;
 		if (count > 15)
