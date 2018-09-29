@@ -37,7 +37,10 @@ static VOID ShowIOR_ItemsWithInput()
 	}
 }
 
-
+static VOID DrawMatchLocation(Mat &display, Mat search, Point MinLoc, Scalar color = Scalar(0, 0, 255))
+{
+	rectangle(display, MinLoc, Point(MinLoc.x + search.cols, MinLoc.y + search.rows), color, 2, 8, 0);
+}
 
 static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 {
@@ -52,8 +55,11 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 	imshow("SRC", image);
 
 	Mat Empty = imread("../data/IOR/IOR-backspace.bmp");
+	Mat Bottle = imread("../data/IOR/IOR-bottle.bmp");
+	Mat Juan = imread("../data/IOR/IOR-juan.bmp");
 	DoThreshold(Empty, Empty, 150, 255);
-
+	DoThreshold(Bottle, Bottle, 150, 255);
+	DoThreshold(Juan, Juan, 150, 255);
 	int count = 0;
 	for (int i = TopLeftRect.y; i < image.rows - TopLeftRect.height; i += TopLeftRect.height)
 	{
@@ -64,8 +70,16 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 		moveWindow(name, 0, count * 60);
 	
 		Point MinLoc = GetMatchedStartPointOnly(imageROI, Empty,0);
-		printf("MinLoc = (%d, %d)\n", MinLoc.x, MinLoc.y);
+		Point MinLoc1 = GetMatchedStartPointOnly(imageROI, Bottle, 0);
+		Point MinLoc2 = GetMatchedStartPointOnly(imageROI, Juan, 0);
+		printf("[%d] MinLo0c = (%d, %d)\t",count, MinLoc.x, MinLoc.y);
+		printf("MinLoc1 = (%d, %d)\t", MinLoc1.x, MinLoc1.y);
+		printf("MinLoc2 = (%d, %d)\n", MinLoc2.x, MinLoc2.y);
+	
 	//	rectangle(imageROI, MinLoc, Point(MinLoc.x + Empty.cols, MinLoc.y + Empty.rows), Scalar(0, 0, 255), 2, 8, 0);
+		DrawMatchLocation(imageROI, Bottle, MinLoc1, Scalar(0, 0, 255));
+		DrawMatchLocation(imageROI, Juan, MinLoc2, Scalar(0, 255, 0));
+
 		imshow(name, imageROI(Rect(0,0, MinLoc.x + 3, imageROI.rows)));
 
 		count++;
