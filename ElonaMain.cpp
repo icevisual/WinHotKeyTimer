@@ -42,6 +42,39 @@ static VOID DrawMatchLocation(Mat &display, Mat search, Point MinLoc, Scalar col
 	rectangle(display, MinLoc, Point(MinLoc.x + search.cols, MinLoc.y + search.rows), color, 2, 8, 0);
 }
 
+
+static VOID Question0001()
+{
+	Mat Empty = imread("../data/IOR/IOR-backspace.bmp");
+	Mat Juan = imread("../data/Quest/IOR-juan2.bmp");
+	DoThreshold(Juan, Juan, 150, 255);
+	DoThreshold(Empty, Empty, 150, 255);
+//	imwrite("../data/Quest/IOR-juan2-DoThreshold.bmp", Juan);
+//	imwrite("../data/Quest/IOR-backspace-DoThreshold.bmp", Empty);
+	Mat imageROI = imread("../data/Quest/IOR-298.bmp");
+	DoThreshold(imageROI, imageROI, 150, 255);
+	int a = imageROI.type();
+	int b = Empty.type();
+	printf("%d %d %d \n",imageROI.depth()==CV_8U, imageROI.depth() == CV_32F, imageROI.type() == Empty.type());
+	// ((depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2)
+//	imwrite("../data/Quest/IOR-298-DoThreshold.bmp", imageROI);
+	
+
+	Point MinLoc = GetMatchedStartPointOnly(imageROI, Empty, 0);
+	Point MinLoc2 = GetMatchedStartPointOnly(imageROI, Juan, 0);
+	printf(" MinLo0c = (%d, %d)", MinLoc.x, MinLoc.y);
+
+	if (MinLoc2.x < 20)
+	{
+		DrawMatchLocation(imageROI, Juan, MinLoc2, Scalar(0, 255, 0));
+		printf("\tMinLoc2 = (%d, %d)", MinLoc2.x, MinLoc2.y);
+	}
+	printf("\n");
+
+	imshow("QUEST", imageROI(Rect(0, 0, MinLoc.x + 3, imageROI.rows)));
+	waitKey();
+}
+
 static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 {
 	Mat image = imread("../data/Src/shop.bmp");
@@ -56,7 +89,7 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 
 	Mat Empty = imread("../data/IOR/IOR-backspace.bmp");
 	Mat Bottle = imread("../data/IOR/IOR-bottle.bmp");
-	Mat Juan = imread("../data/IOR/IOR-juan.bmp");
+	Mat Juan = imread("../data/IOR/IOR-juan2.bmp");
 	DoThreshold(Empty, Empty, 150, 255);
 	DoThreshold(Bottle, Bottle, 150, 255);
 	DoThreshold(Juan, Juan, 150, 255);
@@ -72,13 +105,24 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 		Point MinLoc = GetMatchedStartPointOnly(imageROI, Empty,0);
 		Point MinLoc1 = GetMatchedStartPointOnly(imageROI, Bottle, 0);
 		Point MinLoc2 = GetMatchedStartPointOnly(imageROI, Juan, 0);
-		printf("[%d] MinLo0c = (%d, %d)\t",count, MinLoc.x, MinLoc.y);
-		printf("MinLoc1 = (%d, %d)\t", MinLoc1.x, MinLoc1.y);
-		printf("MinLoc2 = (%d, %d)\n", MinLoc2.x, MinLoc2.y);
+		printf("[%d] MinLo0c = (%d, %d)",count, MinLoc.x, MinLoc.y);
+
+	
+		if (MinLoc1.x < 20)
+		{
+			DrawMatchLocation(imageROI, Bottle, MinLoc1, Scalar(0, 0, 255));
+			printf("\tMinLoc1 = (%d, %d)", MinLoc1.x, MinLoc1.y);
+		}
+		if (MinLoc2.x < 20)
+		{
+			DrawMatchLocation(imageROI, Juan, MinLoc2, Scalar(0, 255, 0));
+			printf("\tMinLoc2 = (%d, %d)", MinLoc2.x, MinLoc2.y);
+		}
+		printf("\n");
 	
 	//	rectangle(imageROI, MinLoc, Point(MinLoc.x + Empty.cols, MinLoc.y + Empty.rows), Scalar(0, 0, 255), 2, 8, 0);
-		DrawMatchLocation(imageROI, Bottle, MinLoc1, Scalar(0, 0, 255));
-		DrawMatchLocation(imageROI, Juan, MinLoc2, Scalar(0, 255, 0));
+
+	
 
 		imshow(name, imageROI(Rect(0,0, MinLoc.x + 3, imageROI.rows)));
 
@@ -88,6 +132,39 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 	}
 	waitKey();
 
+	return 0;
+}
+
+static INT sfsddsf()
+{
+	Mat input_image = (Mat_<uchar>(8, 8) <<
+		0, 0, 0, 0, 0, 0, 0, 0,
+		0, 255, 255, 255, 0, 0, 0, 255,
+		0, 255, 255, 255, 0, 0, 0, 0,
+		0, 255, 255, 255, 0, 255, 0, 0,
+		0, 0, 255, 0, 0, 0, 0, 0,
+		0, 0, 255, 0, 0, 255, 255, 0,
+		0, 255, 0, 255, 0, 0, 255, 0,
+		0, 255, 255, 255, 0, 0, 0, 0);
+	Mat kernel = (Mat_<int>(3, 3) <<
+		0, 1, 0,
+		1, -1, 1,
+		0, 1, 0);
+	Mat output_image;
+	morphologyEx(input_image, output_image, MORPH_HITMISS, kernel);
+	const int rate = 50;
+	kernel = (kernel + 1) * 127;
+	kernel.convertTo(kernel, CV_8U);
+	resize(kernel, kernel, Size(), rate, rate, INTER_NEAREST);
+	imshow("kernel", kernel);
+	moveWindow("kernel", 0, 0);
+	resize(input_image, input_image, Size(), rate, rate, INTER_NEAREST);
+	imshow("Original", input_image);
+	moveWindow("Original", 0, 200);
+	resize(output_image, output_image, Size(), rate, rate, INTER_NEAREST);
+	imshow("Hit or Miss", output_image);
+	moveWindow("Hit or Miss", 500, 200);
+	waitKey(0);
 	return 0;
 }
 
@@ -104,7 +181,7 @@ VOID FindAndCloseWindow()
 
 
 INT main(int argc, TCHAR * argv[]) {
-
+//	sfsddsf();
 	HWND hWnd = NULL;		// 窗口句柄
 	HANDLE hThread = NULL;	// 多线程句柄
 	TCHAR sourceFilename[] = L"config.conf";
@@ -184,11 +261,13 @@ INT main(int argc, TCHAR * argv[]) {
 			}
 			else if (m_HotKeyId5 == msg.wParam) {
 
-				CHAR name[50] = { 0 };
-				sprintf_s(name, "../data/ScreenShot/%lld.jpg", GetTimestamp());
-				//	CHAR * addr = "../data/mix.bmp";
-				GetScreenCapture_LogArea(name);
-				SplitFontImg_AutoIOR(name);
+				Question0001();
+				
+				//CHAR name[50] = { 0 };
+				//sprintf_s(name, "../data/ScreenShot/%lld.jpg", GetTimestamp());
+				////	CHAR * addr = "../data/mix.bmp";
+				//GetScreenCapture_LogArea(name);
+				//SplitFontImg_AutoIOR(name);
 			}
 			else if (m_HotKeyId6 == msg.wParam) {
 

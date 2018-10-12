@@ -184,6 +184,7 @@ Point GetMatchedStartPointOnly(Mat img, Mat templ, int match_method)
 	Point minLoc; Point maxLoc;
 	Point matchLoc;
 	minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
+	// printf("minVal = %f,maxVal = %f\n", minVal, maxVal);
 	if (match_method == TM_SQDIFF || match_method == TM_SQDIFF_NORMED)
 	{
 		matchLoc = minLoc;
