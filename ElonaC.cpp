@@ -26,6 +26,72 @@ using namespace cv::xfeatures2d;
 
 
 
+int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5)
+{
+	img_scene = img_scene(Rect(0, 0, img_scene.cols / 8, img_scene.rows));
+	resize(img_object, img_object, Size(), rate, rate);
+	resize(img_scene, img_scene, Size(), rate, rate);
+
+	if (img_object.empty() || img_scene.empty())
+	{
+		return -1;
+	}
+	//-- Step 1: Detect the keypoints using SURF Detector, compute the descriptors
+	int minHessian = 400;
+	Ptr<SURF> detector = SURF::create(minHessian);
+	std::vector<KeyPoint> keypoints_object, keypoints_scene;
+	Mat descriptors_object, descriptors_scene;
+	detector->detectAndCompute(img_object, noArray(), keypoints_object, descriptors_object);
+	detector->detectAndCompute(img_scene, noArray(), keypoints_scene, descriptors_scene);
+	//-- Step 2: Matching descriptor vectors with a FLANN based matcher
+	// Since SURF is a floating-point descriptor NORM_L2 is used
+	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create(DescriptorMatcher::FLANNBASED);
+	std::vector< std::vector<DMatch> > knn_matches;
+	matcher->knnMatch(descriptors_object, descriptors_scene, knn_matches, 2);
+	//-- Filter matches using the Lowe's ratio test
+	const float ratio_thresh = 0.75f;
+	std::vector<DMatch> good_matches;
+	for (size_t i = 0; i < knn_matches.size(); i++)
+	{
+		if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance)
+		{
+			good_matches.push_back(knn_matches[i][0]);
+		}
+	}
+	//-- Draw matches
+	Mat img_matches;
+	drawMatches(img_object, keypoints_object, img_scene, keypoints_scene, good_matches, img_matches, Scalar::all(-1),
+		Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+	//-- Localize the object
+	std::vector<Point2f> obj;
+	std::vector<Point2f> scene;
+	for (size_t i = 0; i < good_matches.size(); i++)
+	{
+		//-- Get the keypoints from the good matches
+		obj.push_back(keypoints_object[good_matches[i].queryIdx].pt);
+		scene.push_back(keypoints_scene[good_matches[i].trainIdx].pt);
+	}
+	Mat H = findHomography(obj, scene, RANSAC);
+	//-- Get the corners from the image_1 ( the object to be "detected" )
+	std::vector<Point2f> obj_corners(4);
+	obj_corners[0] = Point2f(0, 0);
+	obj_corners[1] = Point2f((float)img_object.cols, 0);
+	obj_corners[2] = Point2f((float)img_object.cols, (float)img_object.rows);
+	obj_corners[3] = Point2f(0, (float)img_object.rows);
+	std::vector<Point2f> scene_corners(4);
+
+	if (H.empty())
+		return -2;
+
+	perspectiveTransform(obj_corners, scene_corners, H);
+	//-- Draw lines between the corners (the mapped object in the scene - image_2 )
+	StartPoint = scene_corners[0] / rate;
+	return 1;
+}
+
+
+
+
 VOID ShowIOR(Mat image, int x,int y ,int w,int h)
 { // GetIOR(127, 540 ,676 ,68);
 	// 127, 540 ,676 ,68
@@ -320,4 +386,43 @@ VOID SplitFontImg(Mat TextSrc)
 		}
 		printf("%d %d \n", Loc.x, Loc.y);
 	}
+}
+
+
+// auto detect Log output area / input filename / ref SplitFontImgTest
+VOID SplitFontImgTest_AutoIOR(string filename)
+{
+	Mat Src = imread(filename, IMREAD_COLOR);
+	Mat IOR;
+	if (Src.rows > 100)
+		IOR = Src(Rect(127, 540, 676, 68));
+	else
+		IOR = Src;
+	SplitFontImgTest(IOR);
+}
+// auto detect Log output area / input filename / ref SplitFontImg
+VOID SplitFontImg_AutoIOR(string filename)
+{
+	Mat Src = imread(filename, IMREAD_COLOR);
+	Mat IOR;
+	if (Src.rows > 100)
+		IOR = Src(Rect(127, 540, 676, 68));
+	else
+		IOR = Src;
+	SplitFontImg(IOR);
+}
+
+VOID GetScreenCaptureWithIOR(LPSTR addr, Rect ior_rect)
+{
+	RECT rect;
+	rect.left = ior_rect.x;
+	rect.top = ior_rect.y;
+	rect.right = ior_rect.x + ior_rect.width;
+	rect.bottom = ior_rect.y + ior_rect.height;
+	ScreenCapture(addr, 32, &rect);
+}
+
+VOID GetScreenCapture_LogArea(LPSTR addr)
+{
+	GetScreenCaptureWithIOR(addr, Rect(127, 540, 676, 68));
 }

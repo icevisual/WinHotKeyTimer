@@ -189,8 +189,37 @@ VOID FindAndCloseWindow()
 
 
 
+int TEST_SURF(int argc, char* argv[])
+{
+	//Mat img_object = imread(parser.get<String>("input1"), IMREAD_GRAYSCALE);
+	//Mat img_scene = imread(parser.get<String>("input2"), IMREAD_GRAYSCALE);
 
-INT main11111111111111111111111111111111(int argc, TCHAR * argv[]) {
+	Mat img_object = imread("../data/Quest/IOR-juan2.bmp", IMREAD_GRAYSCALE);
+	//Mat img_scene = imread("../data/Quest/IOR-298.bmp", IMREAD_GRAYSCALE);
+	// 279
+	//	Mat img_scene = imread("../data/IOR/IOR-279.bmp", IMREAD_GRAYSCALE);
+	// ∫Û√Ê
+	Mat img_scene = imread("../data/IOR/IOR-298.bmp", IMREAD_GRAYSCALE);
+
+	Point2f StartPoint;
+	if (SURFDetect(img_object, img_scene, StartPoint))
+	{
+		rectangle(
+			img_scene,
+			Point2f(StartPoint.x, StartPoint.y),
+			Point2f(StartPoint.x + img_object.cols, StartPoint.y + img_object.rows),
+			Scalar(0, 255, 255),
+			1,
+			LINE_8
+		);
+		imshow("img_scene", img_scene);
+		waitKey();
+	}
+	return 0;
+
+}
+
+INT main(int argc, TCHAR * argv[]) {
 
 
 //	sfsddsf();

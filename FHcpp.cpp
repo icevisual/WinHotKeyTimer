@@ -1,26 +1,29 @@
 #include "stdafx.h"
-
-
 #include <iostream>
-
 #include "opencv2/core.hpp"
-#include "opencv2/imgproc.hpp"
-#include "opencv2/highgui.hpp"
+#ifdef HAVE_OPENCV_XFEATURES2D
 #include "opencv2/calib3d.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/xfeatures2d.hpp"
 using namespace cv;
 using namespace cv::xfeatures2d;
-
-
-int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5)
+using std::cout;
+using std::endl;
+const char* keys =
+"{ help h |                          | Print help message. }"
+"{ input1 | ../data/box.png          | Path to input image 1. }"
+"{ input2 | ../data/box_in_scene.png | Path to input image 2. }";
+int mainFFFFFFF(int argc, char* argv[])
 {
-	img_scene = img_scene(Rect(0, 0, img_scene.cols / 8, img_scene.rows));
-	resize(img_object, img_object, Size(), rate, rate);
-	resize(img_scene, img_scene, Size(), rate, rate);
-
+	CommandLineParser parser(argc, argv, keys);
+	Mat img_object = imread(parser.get<String>("input1"), IMREAD_GRAYSCALE);
+	Mat img_scene = imread(parser.get<String>("input2"), IMREAD_GRAYSCALE);
 	if (img_object.empty() || img_scene.empty())
 	{
+		cout << "Could not open or find the image!\n" << endl;
+		parser.printMessage();
 		return -1;
 	}
 	//-- Step 1: Detect the keypoints using SURF Detector, compute the descriptors
@@ -66,44 +69,25 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5)
 	obj_corners[2] = Point2f((float)img_object.cols, (float)img_object.rows);
 	obj_corners[3] = Point2f(0, (float)img_object.rows);
 	std::vector<Point2f> scene_corners(4);
-
-	if (H.empty())
-		return -2;
-
 	perspectiveTransform(obj_corners, scene_corners, H);
 	//-- Draw lines between the corners (the mapped object in the scene - image_2 )
-	StartPoint = scene_corners[0] / rate;
-	return 1;
-}
-
-
-
-int main(int argc, char* argv[])
-{
-	//Mat img_object = imread(parser.get<String>("input1"), IMREAD_GRAYSCALE);
-	//Mat img_scene = imread(parser.get<String>("input2"), IMREAD_GRAYSCALE);
-
-	Mat img_object = imread("../data/Quest/IOR-juan2.bmp", IMREAD_GRAYSCALE);
-	//Mat img_scene = imread("../data/Quest/IOR-298.bmp", IMREAD_GRAYSCALE);
-	// 279
-//	Mat img_scene = imread("../data/IOR/IOR-279.bmp", IMREAD_GRAYSCALE);
-	// ∫Û√Ê
-	Mat img_scene = imread("../data/IOR/IOR-336.bmp", IMREAD_GRAYSCALE);
-
-	Point2f StartPoint;
-	if (SURFDetect(img_object, img_scene, StartPoint))
-	{
-		rectangle(
-			img_scene,
-			Point2f(StartPoint.x, StartPoint.y),
-			Point2f(StartPoint.x + img_object.cols, StartPoint.y + img_object.rows),
-			Scalar(0, 255, 255),
-			1,
-			LINE_8
-		);
-		imshow("img_scene", img_scene);
-		waitKey();
-	}
+	line(img_matches, scene_corners[0] + Point2f((float)img_object.cols, 0),
+		scene_corners[1] + Point2f((float)img_object.cols, 0), Scalar(0, 255, 0), 4);
+	line(img_matches, scene_corners[1] + Point2f((float)img_object.cols, 0),
+		scene_corners[2] + Point2f((float)img_object.cols, 0), Scalar(0, 255, 0), 4);
+	line(img_matches, scene_corners[2] + Point2f((float)img_object.cols, 0),
+		scene_corners[3] + Point2f((float)img_object.cols, 0), Scalar(0, 255, 0), 4);
+	line(img_matches, scene_corners[3] + Point2f((float)img_object.cols, 0),
+		scene_corners[0] + Point2f((float)img_object.cols, 0), Scalar(0, 255, 0), 4);
+	//-- Show detected matches
+	imshow("Good Matches & Object detection", img_matches);
+	waitKey();
 	return 0;
-
 }
+#else
+int main()
+{
+	std::cout << "This tutorial code needs the xfeatures2d contrib module to be run." << std::endl;
+	return 0;
+}
+#endif
