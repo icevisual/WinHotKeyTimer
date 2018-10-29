@@ -2,7 +2,7 @@
 //
 #include "stdafx.h"
 //
-#include <highgui.h>  
+#include <sstream>  
 #include <iostream>  
 #include <map> 
 

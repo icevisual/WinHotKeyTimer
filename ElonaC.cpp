@@ -6,9 +6,9 @@
 #include<opencv2/highgui/highgui.hpp>  
 #include<opencv2/imgproc/imgproc.hpp>  
 
+#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
 
-#include <cv.h>  
-#include <highgui.h>  
 #include <iostream>  
 
 #include<windows.h>
@@ -18,6 +18,7 @@
 
 using namespace std;
 using namespace cv;
+
 
 VOID ShowIOR(Mat image, int x,int y ,int w,int h)
 { // GetIOR(127, 540 ,676 ,68);
@@ -80,9 +81,9 @@ VOID DoThreshold(Mat Src, Mat &out, double thresh, double maxval)
 	Mat temp_gray;
 	Mat temp_binary;
 	Mat temp_match;
-	cvtColor(Src, temp_gray, CV_BGR2GRAY);
-	threshold(temp_gray, temp_binary, 150, 255, CV_THRESH_BINARY);
-	cvtColor(temp_binary, temp_match, CV_GRAY2BGR);
+	cvtColor(Src, temp_gray, COLOR_BGR2GRAY);
+	threshold(temp_gray, temp_binary, 150, 255, 0);
+	cvtColor(temp_binary, temp_match, COLOR_GRAY2BGR);
 	out = temp_match.clone();
 }
 
@@ -219,11 +220,11 @@ VOID SplitFontImgTest(Mat TextSrc)
 		Mat temp_match;
 		Mat temp = TextSrc(Rect(TextPaddingLeft, TextYOffset + i * TextHeight, Width, TextHeight));
 		
-		cvtColor(temp, temp_gray, CV_BGR2GRAY);
+		cvtColor(temp, temp_gray, COLOR_BGR2GRAY);
 		
-		threshold(temp_gray, temp_binary, 70 + i * 25, 255, CV_THRESH_BINARY);
+		threshold(temp_gray, temp_binary, 70 + i * 25, 255, 0);
 
-		cvtColor(temp_binary, temp_match, CV_GRAY2BGR);
+		cvtColor(temp_binary, temp_match, COLOR_GRAY2BGR);
 		cv::String temp_window = "temp";
 		cv::String  gray_window =  "gray";
 		cv::String binary_window = "binary";
@@ -292,9 +293,9 @@ VOID SplitFontImg(Mat TextSrc)
 		Mat temp_binary;
 		Mat temp_match;
 		Mat temp = TextSrc(Rect(TextPaddingLeft, TextYOffset + i * TextHeight, Width, TextHeight));
-		cvtColor(temp, temp_gray, CV_BGR2GRAY);
-		threshold(temp_gray, temp_binary, 70 + i * 25, 255, CV_THRESH_BINARY);
-		cvtColor(temp_binary, temp_match, CV_GRAY2BGR);
+		cvtColor(temp, temp_gray, COLOR_BGR2GRAY);
+		threshold(temp_gray, temp_binary, 70 + i * 25, 255, 0);
+		cvtColor(temp_binary, temp_match, COLOR_GRAY2BGR);
 		Point Loc = GetMatchedStartPointOnly(temp_match, templ, 0);
 		if (Loc.x > 50)
 		{

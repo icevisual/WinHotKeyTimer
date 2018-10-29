@@ -8,8 +8,7 @@
 #include<opencv2/imgproc/imgproc.hpp>  
 
 
-#include <cv.h>  
-#include <highgui.h>  
+
 #include <iostream>  
 
 #include<windows.h>
@@ -46,7 +45,7 @@ static VOID DrawMatchLocation(Mat &display, Mat search, Point MinLoc, Scalar col
 static VOID Question0001()
 {
 	Mat Empty = imread("../data/IOR/IOR-backspace.bmp");
-	Mat Juan = imread("../data/Quest/IOR-juan2.bmp");
+	Mat Juan = imread("../data/Quest/IOR-juan.bmp");
 	DoThreshold(Juan, Juan, 150, 255);
 	DoThreshold(Empty, Empty, 150, 255);
 //	imwrite("../data/Quest/IOR-juan2-DoThreshold.bmp", Juan);
@@ -59,6 +58,17 @@ static VOID Question0001()
 	// ((depth == CV_8U || depth == CV_32F) && type == _templ.type() && _img.dims() <= 2)
 //	imwrite("../data/Quest/IOR-298-DoThreshold.bmp", imageROI);
 	
+	int rate = 10;
+	resize(Empty, Empty, Size(), rate, rate, INTER_NEAREST);
+	resize(Juan, Juan, Size(), rate, rate, INTER_NEAREST);
+	resize(imageROI, imageROI, Size(), rate, rate, INTER_NEAREST);
+
+	Mat SCopy = imageROI.clone();
+
+	imshow("SCopy", SCopy);
+	imshow("Empty22", Empty);
+	imshow("Juan22", Juan);
+
 
 	Point MinLoc = GetMatchedStartPointOnly(imageROI, Empty, 0);
 	Point MinLoc2 = GetMatchedStartPointOnly(imageROI, Juan, 0);
@@ -89,7 +99,7 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 
 	Mat Empty = imread("../data/IOR/IOR-backspace.bmp");
 	Mat Bottle = imread("../data/IOR/IOR-bottle.bmp");
-	Mat Juan = imread("../data/IOR/IOR-juan2.bmp");
+	Mat Juan = imread("../data/IOR/IOR-juan.bmp");
 	DoThreshold(Empty, Empty, 150, 255);
 	DoThreshold(Bottle, Bottle, 150, 255);
 	DoThreshold(Juan, Juan, 150, 255);
@@ -180,7 +190,9 @@ VOID FindAndCloseWindow()
 
 
 
-INT main(int argc, TCHAR * argv[]) {
+INT main11111111111111111111111111111111(int argc, TCHAR * argv[]) {
+
+
 //	sfsddsf();
 	HWND hWnd = NULL;		// 窗口句柄
 	HANDLE hThread = NULL;	// 多线程句柄
@@ -284,7 +296,7 @@ INT main(int argc, TCHAR * argv[]) {
 				imshow("原图", imag);
 				result = imag.clone();
 				//进行二值化处理，选择30，200.0为阈值
-				threshold(imag, result, 50.0, 255, CV_THRESH_BINARY);
+				threshold(imag, result, 50.0, 255, 0);
 				namedWindow("二值化图像");
 				imshow("二值化图像", result);
 				imwrite("../data/threshold.jpg", result);

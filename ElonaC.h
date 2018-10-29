@@ -6,8 +6,7 @@
 #include<opencv2/imgproc/imgproc.hpp>  
 
 
-#include <cv.h>  
-#include <highgui.h>  
+
 #include <iostream>  
 
 #include<windows.h>
@@ -83,3 +82,4 @@ VOID GetScreenCapture_LogArea(LPSTR addr)
 {
 	GetScreenCaptureWithIOR(addr, Rect(127, 540, 676, 68));
 }
+

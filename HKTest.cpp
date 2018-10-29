@@ -7,8 +7,6 @@
 #include<opencv2/imgproc/imgproc.hpp>  
 
 
-#include <cv.h>  
-#include <highgui.h>  
 #include <iostream>  
 
 #include<windows.h>
