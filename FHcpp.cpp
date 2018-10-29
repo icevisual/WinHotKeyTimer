@@ -1,15 +1,17 @@
 #include "stdafx.h"
 
+
 #include <iostream>
 
 #include "opencv2/core.hpp"
-#include "opencv2/calib3d.hpp"
-#include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/calib3d.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/xfeatures2d.hpp"
 using namespace cv;
 using namespace cv::xfeatures2d;
+
 
 int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5)
 {
@@ -73,6 +75,7 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5)
 	StartPoint = scene_corners[0] / rate;
 	return 1;
 }
+
 
 
 int main(int argc, char* argv[])

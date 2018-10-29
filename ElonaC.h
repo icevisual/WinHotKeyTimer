@@ -2,20 +2,21 @@
 
 #include "stdafx.h"
 #include <opencv2/opencv.hpp>  
-#include<opencv2/highgui/highgui.hpp>  
-#include<opencv2/imgproc/imgproc.hpp>  
-
-
+#include <opencv2/highgui/highgui.hpp>  
+#include <opencv2/imgproc/imgproc.hpp>  
 
 #include <iostream>  
 
-#include<windows.h>
-#include<Mmsystem.h>
+#include <windows.h>
+#include <Mmsystem.h>
 #pragma comment(lib,"winmm.lib")
 #include <map> 
 
 using namespace std;
 using namespace cv;
+
+// int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5);
+
 
 VOID ShowIOR(Mat image, int x, int y, int w, int h);
 
@@ -82,4 +83,3 @@ VOID GetScreenCapture_LogArea(LPSTR addr)
 {
 	GetScreenCaptureWithIOR(addr, Rect(127, 540, 676, 68));
 }
-

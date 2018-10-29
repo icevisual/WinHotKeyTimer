@@ -2,10 +2,10 @@
 //
 #include "stdafx.h"
 //
+#include "opencv2/core.hpp"
 #include <opencv2/opencv.hpp>  
-#include<opencv2/highgui/highgui.hpp>  
-#include<opencv2/imgproc/imgproc.hpp>  
-
+#include <opencv2/highgui/highgui.hpp>  
+#include <opencv2/imgproc/imgproc.hpp>  
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 
@@ -18,6 +18,12 @@
 
 using namespace std;
 using namespace cv;
+
+#include "opencv2/calib3d.hpp"
+#include "opencv2/features2d.hpp"
+#include "opencv2/xfeatures2d.hpp"
+using namespace cv::xfeatures2d;
+
 
 
 VOID ShowIOR(Mat image, int x,int y ,int w,int h)
