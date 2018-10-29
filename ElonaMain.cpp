@@ -38,7 +38,7 @@ static VOID ShowIOR_ItemsWithInput()
 
 static VOID DrawMatchLocation(Mat &display, Mat search, Point MinLoc, Scalar color = Scalar(0, 0, 255))
 {
-	rectangle(display, MinLoc, Point(MinLoc.x + search.cols, MinLoc.y + search.rows), color, 2, 8, 0);
+	rectangle(display, MinLoc, Point(MinLoc.x + search.cols, MinLoc.y + search.rows), color, 1, 8, 0);
 }
 
 
@@ -85,7 +85,7 @@ static VOID Question0001()
 	waitKey();
 }
 
-static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
+static DWORD WINAPI MyThreadFunction_GetMatchedStartPointOnly(LPVOID lpParam)
 {
 	Mat image = imread("../data/Src/shop.bmp");
 	// First Item TopLeft in ScreenCapture 170 165 542 19
@@ -113,11 +113,11 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 		moveWindow(name, 0, count * 60);
 	
 		Point MinLoc = GetMatchedStartPointOnly(imageROI, Empty,0);
+
 		Point MinLoc1 = GetMatchedStartPointOnly(imageROI, Bottle, 0);
 		Point MinLoc2 = GetMatchedStartPointOnly(imageROI, Juan, 0);
 		printf("[%d] MinLo0c = (%d, %d)",count, MinLoc.x, MinLoc.y);
 
-	
 		if (MinLoc1.x < 20)
 		{
 			DrawMatchLocation(imageROI, Bottle, MinLoc1, Scalar(0, 0, 255));
@@ -135,6 +135,72 @@ static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
 	
 
 		imshow(name, imageROI(Rect(0,0, MinLoc.x + 3, imageROI.rows)));
+
+		count++;
+		if (count > 15)
+			break;
+	}
+	waitKey();
+
+	return 0;
+}
+
+
+
+static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
+{
+	Mat image = imread("../data/Src/shop.bmp", IMREAD_GRAYSCALE);
+	// First Item TopLeft in ScreenCapture 170 165 542 19
+	Rect TopLeftRect(170, 165, 542, 19);
+
+
+	namedWindow("SRC");
+	moveWindow("SRC", 600, 60);
+	imshow("SRC", image);
+
+
+
+	Mat Empty = imread("../data/IOR/IOR-backspace.bmp", IMREAD_GRAYSCALE);
+	Mat Bottle = imread("../data/IOR/IOR-bottle.bmp", IMREAD_GRAYSCALE);
+	Mat Juan = imread("../data/IOR/IOR-juan.bmp", IMREAD_GRAYSCALE);
+
+
+
+	// IMREAD_GRAYSCALE
+
+	int count = 0;
+	for (int i = TopLeftRect.y; i < image.rows - TopLeftRect.height; i += TopLeftRect.height)
+	{
+		Mat imageROI = image(Rect(TopLeftRect.x, i, TopLeftRect.width, TopLeftRect.height));
+		CHAR name[50] = { 0 };
+	//	sprintf_s(name, "../data/Split/IOR-%d.bmp", i);
+		sprintf_s(name, "IOR-%d", i);
+//		imwrite(name, imageROI);
+
+		namedWindow(name);
+		moveWindow(name, 0, count * 60);
+
+	//	Point MinLoc = GetMatchedStartPointOnly(imageROI, Empty, 0);
+
+		//Point MinLoc1 = GetMatchedStartPointOnly(imageROI, Bottle, 0);
+		//Point MinLoc2 = GetMatchedStartPointOnly(imageROI, Juan, 0);
+	//	printf("[%d] MinLo0c = (%d, %d)", count, MinLoc.x, MinLoc.y);
+
+		Point2f StartPoint_Juan, StartPoint_Bottle;
+		if (SURFDetect(Juan, imageROI, StartPoint_Juan) > 0)
+		{
+			printf("\t [%d] Juan = (%.3f, %.3f)",i, StartPoint_Juan.x, StartPoint_Juan.y);
+			DrawMatchLocation(imageROI, Juan, StartPoint_Juan, Scalar(0, 0, 255));
+		}
+		if (SURFDetect(Bottle, imageROI, StartPoint_Bottle) > 0)
+		{
+			printf("\t [%d] Bottle = (%.3f, %.3f)", i, StartPoint_Bottle.x, StartPoint_Bottle.y);
+			DrawMatchLocation(imageROI, Bottle, StartPoint_Bottle, Scalar(0, 0, 255));
+		}
+		printf("\n");
+		imshow(name, imageROI);
+
+	//	imshow(name, imageROI(Rect(0, 0, MinLoc.x + 3, imageROI.rows)));
 
 		count++;
 		if (count > 15)
@@ -189,7 +255,7 @@ VOID FindAndCloseWindow()
 
 
 
-int TEST_SURF(int argc, char* argv[])
+int TEST_SURF()
 {
 	//Mat img_object = imread(parser.get<String>("input1"), IMREAD_GRAYSCALE);
 	//Mat img_scene = imread(parser.get<String>("input2"), IMREAD_GRAYSCALE);
@@ -199,7 +265,7 @@ int TEST_SURF(int argc, char* argv[])
 	// 279
 	//	Mat img_scene = imread("../data/IOR/IOR-279.bmp", IMREAD_GRAYSCALE);
 	// 后面
-	Mat img_scene = imread("../data/IOR/IOR-298.bmp", IMREAD_GRAYSCALE);
+	Mat img_scene = imread("../data/Split/IOR-412.bmp", IMREAD_GRAYSCALE);
 
 	Point2f StartPoint;
 	if (SURFDetect(img_object, img_scene, StartPoint))
@@ -222,7 +288,9 @@ int TEST_SURF(int argc, char* argv[])
 INT main(int argc, TCHAR * argv[]) {
 
 
-//	sfsddsf();
+	// TEST_SURF();
+
+
 	HWND hWnd = NULL;		// 窗口句柄
 	HANDLE hThread = NULL;	// 多线程句柄
 	TCHAR sourceFilename[] = L"config.conf";
@@ -242,7 +310,7 @@ INT main(int argc, TCHAR * argv[]) {
 	ATOM m_HotKeyId8 = GlobalAddAtom(_T("WinHotKeySRCtl-StopCycle")) - 0xc000;
 	ATOM m_HotKeyId9 = GlobalAddAtom(_T("WinHotKeySRCtl-Test")) - 0xc000;
 	_tprintf(L"Register HotKeys ... VK_NUMPAD1 ~ VK_NUMPAD9\n");
-	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_NUMPAD1);
+	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_OEM_PLUS);
 	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_NUMPAD2);
 	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
 	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
@@ -270,15 +338,24 @@ INT main(int argc, TCHAR * argv[]) {
 			GetHMS(g_CunnentTime);
 
 			if (m_HotKeyId1 == msg.wParam) {
-				// Start Script
-				_tprintf(_T("[%s] Button `1`,Save \n"), g_CunnentTime);
-				system("1.bat");
+
+
+
+				
+			//	Sleep(100);
+				ConvertChar2KeyWordAndSimulate("S");
+				Sleep(100);
+				ConvertChar2KeyWordAndSimulate("a");
+				Sleep(100);
+				WORD  Keys[] = { 
+	//				VK_ESCAPE ,
+					VK_RETURN
+				};
+				SimulateKeyArrayInput(Keys, 1);
 			}
 			else if (m_HotKeyId2 == msg.wParam) {
 
-				// Stop Script
-				_tprintf(_T("[%s] Button `2`,Reset \n"), g_CunnentTime);
-				system("2.bat");
+
 			}
 			else if (m_HotKeyId3 == msg.wParam) {
 				// Exit

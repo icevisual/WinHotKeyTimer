@@ -26,9 +26,9 @@ using namespace cv::xfeatures2d;
 
 
 
-int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5)
+int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint,int min_matches_size = 15, int rate = 5)
 {
-	img_scene = img_scene(Rect(0, 0, img_scene.cols / 8, img_scene.rows));
+	img_scene = img_scene(Rect(0, 0, img_scene.cols / 10, img_scene.rows));
 	resize(img_object, img_object, Size(), rate, rate);
 	resize(img_scene, img_scene, Size(), rate, rate);
 
@@ -58,6 +58,12 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5)
 			good_matches.push_back(knn_matches[i][0]);
 		}
 	}
+//	printf(" good_matches.size = %d \n", good_matches.size());
+	if (good_matches.empty())
+		return -3;
+	if (good_matches.size() < min_matches_size)
+		return -4;
+
 	//-- Draw matches
 	Mat img_matches;
 	drawMatches(img_object, keypoints_object, img_scene, keypoints_scene, good_matches, img_matches, Scalar::all(-1),
@@ -71,6 +77,7 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5)
 		obj.push_back(keypoints_object[good_matches[i].queryIdx].pt);
 		scene.push_back(keypoints_scene[good_matches[i].trainIdx].pt);
 	}
+	
 	Mat H = findHomography(obj, scene, RANSAC);
 	//-- Get the corners from the image_1 ( the object to be "detected" )
 	std::vector<Point2f> obj_corners(4);

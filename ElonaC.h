@@ -26,7 +26,7 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 
 
-int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int rate = 5);
+int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_matches_size = 15, int rate = 5);
 
 VOID ShowIOR(Mat image, int x, int y, int w, int h);
 
