@@ -16,10 +16,12 @@
 #include "math.h"
 #include "FileConfig.h"
 #include <iostream>  
+#include<vector>
 using namespace std;
 // TODO:  在此处引用程序需要的其他头文件
 
-
+using std::string;
+using std::vector;
 
 INT GetMilliSecondOfDay();
 
@@ -63,6 +65,8 @@ VOID SimulateKeyArrayInput(WORD  Keys[], CHAR Count);
 WORD ConvertChar2KeyWordAndSimulate(string str);
 
 INT IndexOf(CHAR *data, INT length, CHAR chr);
+
+INT ListFilesWithExt_NDP(const string& folder_path, vector<string> &ResultVector, string Ext);
 
 int DOMatch(string img_name, string templ_name);
 

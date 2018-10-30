@@ -1,6 +1,7 @@
 // WinGHotKey.cpp : 定义控制台应用程序的入口点。
 //
 #include "stdafx.h"
+// #include "ElonaC.h"
 //
 #include "opencv2/core.hpp"
 #include <opencv2/opencv.hpp>  
@@ -15,16 +16,15 @@
 #include<Mmsystem.h>
 #pragma comment(lib,"winmm.lib")
 #include <map> 
-
-using namespace std;
-using namespace cv;
-
 #include "opencv2/calib3d.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/xfeatures2d.hpp"
+
+#include <io.h>
+
+using namespace std;
+using namespace cv;
 using namespace cv::xfeatures2d;
-
-
 
 int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint,int min_matches_size = 15, int rate = 5)
 {
@@ -97,6 +97,24 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint,int min_matche
 }
 
 
+INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder = "../data/Temp/", String Ext = ".jpg")
+{
+	CHAR name[250] = { 0 };
+	sprintf_s(name, "%s/%d%s", TempFolder.c_str(), GetMilliSecondOfDay(), Ext.c_str());
+	cv::String tname(name);
+	imwrite(tname, Input);
+	CHAR new_name[250] = { 0 };
+	string MD5Value = FileDigest(tname);
+	sprintf_s(new_name, "%s/%s%s", StoreFolder.c_str(), MD5Value.c_str(), Ext.c_str());
+	int r = rename(name, new_name);
+	
+	if (r < 0)
+	{
+		remove(name);
+	}
+	printf("MD5=%s rename=%d\n", MD5Value.c_str(), r);
+	return r;
+}
 
 
 VOID ShowIOR(Mat image, int x,int y ,int w,int h)
@@ -276,6 +294,171 @@ Point GetMatchedStartPointOnly(Mat img, Mat templ, int match_method)
 	return matchLoc;
 }
 
+VOID ScanXuyuanFolder_GetLogArea()
+{
+	vector<String> ResultVector;
+
+	if (ListFilesWithExt_NDP("../data/Src/xuyuan", ResultVector,".bmp"))
+	{
+		for (int i = 0; i < ResultVector.size(); i++)
+		{
+			cout << ResultVector[i] << endl;
+
+			Mat Src = imread(ResultVector[i], IMREAD_COLOR);
+			Mat IOR;
+			if (Src.rows > 100)
+				IOR = Src(Rect(127, 540, 676, 68));
+			else
+				IOR = Src;
+			RenameMatWithMD5(IOR, "../data/Split/ConsoleArea");
+		}
+	}
+}
+
+
+const int max_value_H = 360 / 2;
+const int max_value = 255;
+const String window_capture_name = "Video Capture";
+const String window_detection_name = "Object Detection";
+int low_H = 0, low_S = 0, low_V = 0;
+int high_H = max_value_H, high_S = max_value, high_V = max_value;
+Mat frame_threshold, frame_HSV;
+static void redraw()
+{
+	inRange(frame_HSV, Scalar(low_H, low_S, low_V), Scalar(high_H, high_S, high_V), frame_threshold);
+	imshow(window_detection_name, frame_threshold);
+}
+static void on_low_H_thresh_trackbar(int, void *)
+{
+	low_H = min(high_H - 1, low_H);
+	setTrackbarPos("Low H", window_detection_name, low_H);
+	redraw();
+}
+static void on_high_H_thresh_trackbar(int, void *)
+{
+	high_H = max(high_H, low_H + 1);
+	setTrackbarPos("High H", window_detection_name, high_H);
+	redraw();
+}
+static void on_low_S_thresh_trackbar(int, void *)
+{
+	low_S = min(high_S - 1, low_S);
+	setTrackbarPos("Low S", window_detection_name, low_S);
+	redraw();
+}
+static void on_high_S_thresh_trackbar(int, void *)
+{
+	high_S = max(high_S, low_S + 1);
+	setTrackbarPos("High S", window_detection_name, high_S);
+	redraw();
+}
+static void on_low_V_thresh_trackbar(int, void *)
+{
+	low_V = min(high_V - 1, low_V);
+	setTrackbarPos("Low V", window_detection_name, low_V);
+	redraw();
+}
+static void on_high_V_thresh_trackbar(int, void *)
+{
+	high_V = max(high_V, low_V + 1);
+	setTrackbarPos("High V", window_detection_name, high_V);
+	redraw();
+	
+}
+int inRange_DM()
+{
+	namedWindow(window_capture_name);
+	namedWindow(window_detection_name);
+	// Trackbars to set thresholds for HSV values
+	createTrackbar("Low H", window_detection_name, &low_H, max_value_H, on_low_H_thresh_trackbar);
+	
+	createTrackbar("Low S", window_detection_name, &low_S, max_value, on_low_S_thresh_trackbar);
+
+	createTrackbar("Low V", window_detection_name, &low_V, max_value, on_low_V_thresh_trackbar);
+
+	createTrackbar("High H", window_detection_name, &high_H, max_value_H, on_high_H_thresh_trackbar);
+	createTrackbar("High S", window_detection_name, &high_S, max_value, on_high_S_thresh_trackbar);
+	createTrackbar("High V", window_detection_name, &high_V, max_value, on_high_V_thresh_trackbar);
+
+	Mat src0hong = imread("../data/Split/ConsoleArea/4a2e0a21024688dd9355c0d737626910.jpg", IMREAD_COLOR);
+	// bai
+	Mat src1bai = imread("../data/Split/ConsoleArea/6edcf4542d873097e366d2dfe2d2f0f4.jpg", IMREAD_COLOR);
+	// lu
+	Mat src2lu = imread("../data/Split/ConsoleArea/d8ce3bef07ee2f4322a0025980ee3e28.jpg", IMREAD_COLOR);
+
+	Mat frame;
+	frame = src0hong;
+	// Convert from BGR to HSV colorspace
+	cvtColor(frame, frame_HSV, COLOR_BGR2HSV);
+	// Detect the object based on HSV Range Values
+	inRange(frame_HSV, Scalar(low_H, low_S, low_V), Scalar(high_H, high_S, high_V), frame_threshold);
+	// Show the frames
+	imshow(window_capture_name, frame);
+	imshow(window_detection_name, frame_threshold);
+	waitKey();
+	return 0;
+}
+
+
+
+
+INT calcHist_DM(Mat src,String name)
+{
+	if (src.empty())
+	{
+		return -1;
+	}
+	vector<Mat> bgr_planes;
+	split(src, bgr_planes);
+	int histSize = 256;
+	float range[] = { 0, 256 }; //the upper boundary is exclusive
+	const float* histRange = { range };
+	bool uniform = true, accumulate = false;
+	Mat b_hist, g_hist, r_hist;
+	calcHist(&bgr_planes[0], 1, 0, Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
+	calcHist(&bgr_planes[1], 1, 0, Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
+	calcHist(&bgr_planes[2], 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
+	int hist_w = 512, hist_h = 400;
+	int bin_w = cvRound((double)hist_w / histSize);
+	Mat histImage(hist_h, hist_w, CV_8UC3, Scalar(0, 0, 0));
+	normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+	normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+	normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+	for (int i = 1; i < histSize; i++)
+	{
+		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(b_hist.at<float>(i - 1))),
+			Point(bin_w*(i), hist_h - cvRound(b_hist.at<float>(i))),
+			Scalar(255, 0, 0), 2, 8, 0);
+		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(g_hist.at<float>(i - 1))),
+			Point(bin_w*(i), hist_h - cvRound(g_hist.at<float>(i))),
+			Scalar(0, 255, 0), 2, 8, 0);
+		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(r_hist.at<float>(i - 1))),
+			Point(bin_w*(i), hist_h - cvRound(r_hist.at<float>(i))),
+			Scalar(0, 0, 255), 2, 8, 0);
+	}
+	imshow("Source image" + name, src);
+	imshow("calcHist Demo" + name, histImage);
+	return 0;
+}
+
+INT ColorStatistics()
+{
+	// Color Filter
+	// hong
+	Mat src0hong = imread("../data/Split/ConsoleArea/4a2e0a21024688dd9355c0d737626910.jpg", IMREAD_COLOR);
+	// bai
+	Mat src1bai = imread("../data/Split/ConsoleArea/6edcf4542d873097e366d2dfe2d2f0f4.jpg", IMREAD_COLOR);
+	// lu
+	Mat src2lu = imread("../data/Split/ConsoleArea/d8ce3bef07ee2f4322a0025980ee3e28.jpg", IMREAD_COLOR);
+	
+	calcHist_DM(src0hong,"src0hong");
+	calcHist_DM(src1bai,"src1bai");
+	calcHist_DM(src2lu,"src2lu");
+	waitKey();
+	return 0;
+}
+
+
 VOID SplitFontImgTest(Mat TextSrc)
 {
 	INT TextPaddingTop = 3;
@@ -284,6 +467,13 @@ VOID SplitFontImgTest(Mat TextSrc)
 	INT TextYOffset = 4;
 	INT Width = TextSrc.cols - 30;
 	Mat Rows[4];
+
+	inRange_DM();
+	return;
+
+
+
+	RenameMatWithMD5(TextSrc,"../data/Split/ConsoleArea");
 
 	Mat empty = imread("../data/empty.jpg", IMREAD_COLOR);
 	Mat templ = empty(Rect(0,0, empty.cols, TextHeight));
@@ -305,10 +495,10 @@ VOID SplitFontImgTest(Mat TextSrc)
 
 		cvtColor(temp_binary, temp_match, COLOR_GRAY2BGR);
 		cv::String temp_window = "temp";
-		cv::String  gray_window =  "gray";
+		cv::String gray_window =  "gray";
 		cv::String binary_window = "binary";
-		cv::String  match_window =  "match";
-		cv::String  result_window = "result";
+		cv::String match_window =  "match";
+		cv::String result_window = "result";
 		temp_window += '0' + i;
 		gray_window += '0' + i;
 		binary_window += '0' + i;
@@ -353,6 +543,8 @@ VOID SplitFontImgTest(Mat TextSrc)
 	waitKey();
 }
 
+
+
 VOID SplitFontImg(Mat TextSrc)
 {
 	INT TextPaddingTop = 3;
@@ -379,17 +571,7 @@ VOID SplitFontImg(Mat TextSrc)
 		if (Loc.x > 50)
 		{
 			Rows = temp_match(Rect(0, 0, Loc.x, TextHeight));
-
-
-			CHAR name[50] = { 0 };
-			sprintf_s(name,"../data/Temp/%d.jpg",GetMilliSecondOfDay());
-			cv::String tname(name);
-			imwrite(tname, Rows);
-			CHAR new_name[250] = { 0 };
-			string MD5Value = FileDigest(tname);
-			sprintf_s(new_name, "../data/Split/%s.jpg", MD5Value.c_str());
-			int r = rename(name, new_name);
-			printf("MD5=%s rename=%d\n", MD5Value.c_str(),r);
+			RenameMatWithMD5(Rows,"../data/Split");
 		}
 		printf("%d %d \n", Loc.x, Loc.y);
 	}

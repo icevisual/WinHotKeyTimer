@@ -3,8 +3,10 @@
 #include <vector>
 #include <iostream>  
 #include <map>
+#include <io.h>
 using namespace std;
 using std::vector;
+using std::string;
 
 //LPBYTE lpBuf = (LPBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwNeedSize);
 //if (lpBuf)
@@ -502,6 +504,8 @@ VOID SimulateKeyArrayInput(WORD  Keys[], CHAR Count)
 	SendInput(KeyCount, input, sizeof(INPUT));
 }
 
+
+
 WORD ConvertChar2KeyWordAndSimulate(string str)
 {
 	static BOOL IsMapInited = FALSE;
@@ -586,4 +590,31 @@ INT IndexOf(CHAR *data, INT length, CHAR chr)
 		if (data[i] == chr)
 			return i;
 	return -1;
+}
+
+// List Files With Extension No Deep Search
+INT ListFilesWithExt_NDP(const string& folder_path, vector<string> &result_vector, string Ext)
+{
+	_finddata_t file;
+	long flag;
+	string filename = folder_path + "\\*" + Ext;//遍历制定文件夹内的jpg文件
+	if ((flag = _findfirst(filename.c_str(), &file)) == -1)//目录内找不到文件
+	{
+		cout << "There is no such type file" << endl;
+		return -1;
+	}
+	else
+	{
+		//通过前面的_findfirst找到第一个文件
+		string name = folder_path + "\\" + file.name;//file.name存放的是遍历得到的文件名
+		result_vector.push_back(name);
+		//依次寻找以后的文件
+		while (_findnext(flag, &file) == 0)
+		{
+			string name = string(folder_path + "\\" + string(file.name));
+			result_vector.push_back(name);
+		}
+	}
+	_findclose(flag);
+	return 1;
 }

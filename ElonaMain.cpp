@@ -310,10 +310,10 @@ INT main(int argc, TCHAR * argv[]) {
 	ATOM m_HotKeyId8 = GlobalAddAtom(_T("WinHotKeySRCtl-StopCycle")) - 0xc000;
 	ATOM m_HotKeyId9 = GlobalAddAtom(_T("WinHotKeySRCtl-Test")) - 0xc000;
 	_tprintf(L"Register HotKeys ... VK_NUMPAD1 ~ VK_NUMPAD9\n");
-	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_OEM_PLUS);
-	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_NUMPAD2);
+	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_OEM_MINUS);
+	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_OEM_PLUS);
 	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
-	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
+//	LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
 	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, 0x33);
 	LocalRegisterHotKey(hWnd, m_HotKeyId6, MOD_NOREPEAT, VK_NUMPAD6);
 	LocalRegisterHotKey(hWnd, m_HotKeyId7, MOD_NOREPEAT, VK_NUMPAD7);
@@ -339,23 +339,35 @@ INT main(int argc, TCHAR * argv[]) {
 
 			if (m_HotKeyId1 == msg.wParam) {
 
-
+				for (int i = 0; i < 100; i++)
+				{
+					ConvertChar2KeyWordAndSimulate("f");
+					Sleep(40);
+				}
 
 				
-			//	Sleep(100);
-				ConvertChar2KeyWordAndSimulate("S");
-				Sleep(100);
-				ConvertChar2KeyWordAndSimulate("a");
-				Sleep(100);
-				WORD  Keys[] = { 
-	//				VK_ESCAPE ,
-					VK_RETURN
-				};
-				SimulateKeyArrayInput(Keys, 1);
+	//		//	Sleep(100);
+	//			ConvertChar2KeyWordAndSimulate("S");
+	//			Sleep(100);
+	//			ConvertChar2KeyWordAndSimulate("a");
+	//			Sleep(100);
+	//			WORD  Keys[] = { 
+	////				VK_ESCAPE ,
+	//	//			VK_LEFT,
+	//				VK_NUMPAD4
+	//			};
+	//			SimulateKeyArrayInput(Keys, 1);
 			}
 			else if (m_HotKeyId2 == msg.wParam) {
 
-
+				for (int i = 0; i < 10; i++)
+				{
+					WORD  Keys[] = { 
+						VK_NUMPAD4
+					};
+					SimulateKeyArrayInput(Keys, 1);
+					Sleep(300);
+				}
 			}
 			else if (m_HotKeyId3 == msg.wParam) {
 				// Exit
@@ -379,20 +391,20 @@ INT main(int argc, TCHAR * argv[]) {
 			}
 			else if (m_HotKeyId5 == msg.wParam) {
 
-				Question0001();
+				// Question0001();
 				
 				//CHAR name[50] = { 0 };
 				//sprintf_s(name, "../data/ScreenShot/%lld.jpg", GetTimestamp());
-				////	CHAR * addr = "../data/mix.bmp";
-				//GetScreenCapture_LogArea(name);
-				//SplitFontImg_AutoIOR(name);
+		/*		CHAR * name = "../data/mix.bmp";
+				GetScreenCapture_LogArea(name);
+				SplitFontImg_AutoIOR(name);*/
 			}
 			else if (m_HotKeyId6 == msg.wParam) {
 
-				GetMatchedStartPointWithFName("../data/Src/backpack.bmp", "../data/Src/de.bmp", 0, FALSE);
+			/*	GetMatchedStartPointWithFName("../data/Src/backpack.bmp", "../data/Src/de.bmp", 0, FALSE);
 				GetMatchedStartPointWithFName("../data/Src/backpack.bmp", "../data/Src/de1.bmp", 0, FALSE);
-
-				// SplitFontImgTest_AutoIOR("../data/Screen.bmp");
+*/
+				SplitFontImgTest_AutoIOR("../data/Src/xuyuan/benzhoule.bmp");
 			}
 			else if (m_HotKeyId7 == msg.wParam) {
 
