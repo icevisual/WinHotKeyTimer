@@ -595,6 +595,7 @@ INT IndexOf(CHAR *data, INT length, CHAR chr)
 // List Files With Extension No Deep Search
 INT ListFilesWithExt_NDP(const string& folder_path, vector<string> &result_vector, string Ext)
 {
+	result_vector.clear();
 	_finddata_t file;
 	long flag;
 	string filename = folder_path + "\\*" + Ext;//遍历制定文件夹内的jpg文件

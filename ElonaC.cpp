@@ -26,9 +26,9 @@ using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
+// SURF 检测已知 物体
 int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint,int min_matches_size = 15, int rate = 5)
 {
-	img_scene = img_scene(Rect(0, 0, img_scene.cols / 10, img_scene.rows));
 	resize(img_object, img_object, Size(), rate, rate);
 	resize(img_scene, img_scene, Size(), rate, rate);
 
@@ -96,7 +96,7 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint,int min_matche
 	return 1;
 }
 
-
+// Mat 保存为 MD5 值名称
 INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder = "../data/Temp/", String Ext = ".jpg")
 {
 	CHAR name[250] = { 0 };
@@ -116,7 +116,7 @@ INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder = "../data
 	return r;
 }
 
-
+// 根据坐标 显示区域
 VOID ShowIOR(Mat image, int x,int y ,int w,int h)
 { // GetIOR(127, 540 ,676 ,68);
 	// 127, 540 ,676 ,68
@@ -139,7 +139,7 @@ VOID ShowIOR(Mat image, int x,int y ,int w,int h)
 }
 
 
-
+// 根据坐标 显示区域 同样的尺寸
 VOID ShowIOR_Items(Mat image ,int x, int y, int w, int h)
 { 
 	if (x + w > image.cols)
@@ -172,7 +172,7 @@ VOID ShowIOR_Items(Mat image ,int x, int y, int w, int h)
 	waitKey();
 }
 
-
+// shop item 二值图
 VOID DoThreshold(Mat Src, Mat &out, double thresh, double maxval)
 {
 	Mat temp_gray;
@@ -294,6 +294,7 @@ Point GetMatchedStartPointOnly(Mat img, Mat templ, int match_method)
 	return matchLoc;
 }
 
+// 将目录下截屏图片。剪切出 日志栏 保存
 VOID ScanXuyuanFolder_GetLogArea()
 {
 	vector<String> ResultVector;
@@ -315,13 +316,56 @@ VOID ScanXuyuanFolder_GetLogArea()
 	}
 }
 
+// MergeImagesVertically("../data/Split/ConsoleArea/Diff",".jpg","../data/Split/ConsoleArea/Merge.bmp")
+// 垂直合并图片，用于整合 颜色筛选 素材图片
+VOID MergeImagesVertically(string Folder,string Ext,string MergedFilename,BOOL ShowImage = TRUE)
+{
+	vector<String> ResultVector;
+	if (ListFilesWithExt_NDP(Folder, ResultVector, Ext))
+	{
+		vector<Mat> temp;
+		INT Height = 0;
+		INT Width = 0;
+		if (ResultVector.empty())
+			return;
+		for (int i = 0; i < ResultVector.size(); i++)
+		{
+			Mat Src = imread(ResultVector[i], IMREAD_COLOR);
+			temp.push_back(Src);
+			Height += Src.rows;
+			Width = max(Width,Src.cols);
+		}
+		Mat Merge(Height, Width, CV_8UC3);
+		INT tmp = 0; 
+		for (int i = 0; i < temp.size(); i++)
+		{
+			//    img4_color.copyTo(canvas(Range::all(), Range(0, img1.cols)));
+			Range rga(tmp, tmp + temp[i].rows);
+			Range rgb(0, temp[i].cols);
+			temp[i].copyTo(Merge(rga, rgb));
+			tmp += temp[i].rows;
+		}
+		imwrite(MergedFilename,Merge);
+		if (ShowImage == TRUE)
+		{
+			imshow("Merged", Merge);
+			waitKey();
+		}
+	}
+}
+
+
+// 用于调试 颜色筛选 的 inRange 阈值 
+#pragma region inRange Color Filter
 
 const int max_value_H = 360 / 2;
 const int max_value = 255;
 const String window_capture_name = "Video Capture";
 const String window_detection_name = "Object Detection";
 int low_H = 0, low_S = 0, low_V = 0;
+//int low_H = 0, low_S = 43, low_V = 46;
 int high_H = max_value_H, high_S = max_value, high_V = max_value;
+//int high_H = 10, high_S = max_value, high_V = max_value;
 Mat frame_threshold, frame_HSV;
 static void redraw()
 {
@@ -371,13 +415,10 @@ int inRange_DM()
 	namedWindow(window_detection_name);
 	// Trackbars to set thresholds for HSV values
 	createTrackbar("Low H", window_detection_name, &low_H, max_value_H, on_low_H_thresh_trackbar);
-	
-	createTrackbar("Low S", window_detection_name, &low_S, max_value, on_low_S_thresh_trackbar);
-
-	createTrackbar("Low V", window_detection_name, &low_V, max_value, on_low_V_thresh_trackbar);
-
 	createTrackbar("High H", window_detection_name, &high_H, max_value_H, on_high_H_thresh_trackbar);
+	createTrackbar("Low S", window_detection_name, &low_S, max_value, on_low_S_thresh_trackbar);
 	createTrackbar("High S", window_detection_name, &high_S, max_value, on_high_S_thresh_trackbar);
+	createTrackbar("Low V", window_detection_name, &low_V, max_value, on_low_V_thresh_trackbar);
 	createTrackbar("High V", window_detection_name, &high_V, max_value, on_high_V_thresh_trackbar);
 
 	Mat src0hong = imread("../data/Split/ConsoleArea/4a2e0a21024688dd9355c0d737626910.jpg", IMREAD_COLOR);
@@ -385,9 +426,11 @@ int inRange_DM()
 	Mat src1bai = imread("../data/Split/ConsoleArea/6edcf4542d873097e366d2dfe2d2f0f4.jpg", IMREAD_COLOR);
 	// lu
 	Mat src2lu = imread("../data/Split/ConsoleArea/d8ce3bef07ee2f4322a0025980ee3e28.jpg", IMREAD_COLOR);
-
+	Mat srcMerge = imread("../data/Split/ConsoleArea/Merge.bmp", IMREAD_COLOR);
+//	Mat srcMerge = imread("../data/Split/ConsoleArea/8e0e163b4b1d2d73f3e68e79739d64e4.jpg", IMREAD_COLOR);
+	// d8ce3bef07ee2f4322a0025980ee3e28
 	Mat frame;
-	frame = src0hong;
+	frame = srcMerge;
 	// Convert from BGR to HSV colorspace
 	cvtColor(frame, frame_HSV, COLOR_BGR2HSV);
 	// Detect the object based on HSV Range Values
@@ -398,67 +441,134 @@ int inRange_DM()
 	waitKey();
 	return 0;
 }
+#pragma endregion
 
 
-
-
-INT calcHist_DM(Mat src,String name)
+// 使用 inRange 筛选 图片中的 EC 红色部分
+VOID filter_ec_red(Mat src,Mat &output)
 {
-	if (src.empty())
-	{
-		return -1;
-	}
-	vector<Mat> bgr_planes;
-	split(src, bgr_planes);
-	int histSize = 256;
-	float range[] = { 0, 256 }; //the upper boundary is exclusive
-	const float* histRange = { range };
-	bool uniform = true, accumulate = false;
-	Mat b_hist, g_hist, r_hist;
-	calcHist(&bgr_planes[0], 1, 0, Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
-	calcHist(&bgr_planes[1], 1, 0, Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
-	calcHist(&bgr_planes[2], 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
-	int hist_w = 512, hist_h = 400;
-	int bin_w = cvRound((double)hist_w / histSize);
-	Mat histImage(hist_h, hist_w, CV_8UC3, Scalar(0, 0, 0));
-	normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
-	normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
-	normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
-	for (int i = 1; i < histSize; i++)
-	{
-		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(b_hist.at<float>(i - 1))),
-			Point(bin_w*(i), hist_h - cvRound(b_hist.at<float>(i))),
-			Scalar(255, 0, 0), 2, 8, 0);
-		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(g_hist.at<float>(i - 1))),
-			Point(bin_w*(i), hist_h - cvRound(g_hist.at<float>(i))),
-			Scalar(0, 255, 0), 2, 8, 0);
-		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(r_hist.at<float>(i - 1))),
-			Point(bin_w*(i), hist_h - cvRound(r_hist.at<float>(i))),
-			Scalar(0, 0, 255), 2, 8, 0);
-	}
-	imshow("Source image" + name, src);
-	imshow("calcHist Demo" + name, histImage);
-	return 0;
+	// Convert from BGR to HSV colorspace
+	cvtColor(src, output, COLOR_BGR2HSV);
+	// Detect the object based on HSV Range Values
+	inRange(output, Scalar(0, 28, 201), Scalar(180, 80, 224), output);
+}
+// 使用 inRange 筛选 图片中的 EC 绿色部分
+VOID filter_ec_green(Mat src, Mat &output)
+{
+	// Convert from BGR to HSV colorspace
+	cvtColor(src, output, COLOR_BGR2HSV);
+	// Detect the object based on HSV Range Values
+	inRange(output, Scalar(33, 18, 201), Scalar(77, 255, 255), output);
 }
 
-INT ColorStatistics()
+
+// 判断图片中是否包含 白色 点
+BOOL JudgeHasWhitePoint(Mat Src)
 {
-	// Color Filter
-	// hong
-	Mat src0hong = imread("../data/Split/ConsoleArea/4a2e0a21024688dd9355c0d737626910.jpg", IMREAD_COLOR);
-	// bai
-	Mat src1bai = imread("../data/Split/ConsoleArea/6edcf4542d873097e366d2dfe2d2f0f4.jpg", IMREAD_COLOR);
-	// lu
-	Mat src2lu = imread("../data/Split/ConsoleArea/d8ce3bef07ee2f4322a0025980ee3e28.jpg", IMREAD_COLOR);
-	
-	calcHist_DM(src0hong,"src0hong");
-	calcHist_DM(src1bai,"src1bai");
-	calcHist_DM(src2lu,"src2lu");
+	double minVal; double maxVal;
+	Point minLoc; Point maxLoc;
+	minMaxLoc(Src, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
+	printf("JudgeHasWhitePoint >> minVal = %.2lf maxVal = %.2lf minLoc=(%d,%d) maxLoc=(%d,%d)\n", minVal, maxVal, minLoc.x, minLoc.y, maxLoc.x, maxLoc.y);
+
+	if (minVal < 1e-6 && maxVal < 1e-6)
+		return FALSE;
+
+	return TRUE;
+}
+
+// 判断图片中是否包含 EC 红色 点
+BOOL JudgeRedPoint(Mat Src)
+{
+	Mat Temp;
+	filter_ec_red(Src, Temp);
+	return JudgeHasWhitePoint(Temp);
+}
+// 判断图片中是否包含 EC 绿色 点
+BOOL JudgeGreenPoint(Mat Src)
+{
+	Mat Temp;
+	filter_ec_green(Src, Temp);
+	return JudgeHasWhitePoint(Temp);
+}
+
+
+//  通过文件夹内的图片，测试 filter_ec_red | green 
+VOID TestFolderImages()
+{
+	vector<String> ResultVector;
+	if (ListFilesWithExt_NDP("../data/Split/ConsoleArea/Red", ResultVector, ".jpg"))
+	{
+		for (int i = 0; i < ResultVector.size(); i++)
+		{
+			Mat srcMerge = imread(ResultVector[i], IMREAD_COLOR);
+			Mat red;
+			filter_ec_red(srcMerge, red);
+			if (JudgeHasWhitePoint(red) != TRUE)
+			{
+				imshow("RED-" + ResultVector[i], srcMerge);
+			}
+		}
+	}
+	if (ListFilesWithExt_NDP("../data/Split/ConsoleArea/Green", ResultVector, ".jpg"))
+	{
+		for (int i = 0; i < ResultVector.size(); i++)
+		{
+			Mat srcMerge = imread(ResultVector[i], IMREAD_COLOR);
+			Mat red;
+			filter_ec_green(srcMerge, red);
+			if (JudgeHasWhitePoint(red) != TRUE)
+			{
+				imshow("GRN-" + ResultVector[i], srcMerge);
+			}
+		}
+	}
+	if (ListFilesWithExt_NDP("../data/Split/ConsoleArea/Other", ResultVector, ".jpg"))
+	{
+		for (int i = 0; i < ResultVector.size(); i++)
+		{
+			Mat srcMerge = imread(ResultVector[i], IMREAD_COLOR);
+			Mat red;
+			filter_ec_red(srcMerge, red);
+			if (JudgeHasWhitePoint(red) == TRUE)
+			{
+				imshow("OTR-" + ResultVector[i], srcMerge);
+			}
+			filter_ec_green(srcMerge, red);
+			if (JudgeHasWhitePoint(red) == TRUE)
+			{
+				imshow("OTR-" + ResultVector[i], srcMerge);
+			}
+		}
+	}
 	waitKey();
-	return 0;
+}
+
+// 判断干涸
+BOOL DetectGanhele(Mat img_scene)
+{
+	static Mat img_object = imread("../data/Src/ganhele.jpg ", IMREAD_GRAYSCALE);
+	Point2f StartPoint;
+	if (SURFDetect(img_object, img_scene, StartPoint) > 0)
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 
+VOID RunWishing()
+{
+	// 打开 EC 程序
+	// 截屏 获取输出栏
+	// 判断 红色：重启，绿色：保存重启
+	// 判断 干涸：重启，冲出来：重启
+	// 判断 许愿
+
+}
+
+
+
+// 分解 四行 输出栏，每行截取文字图段，使用 templateMatch ，轮用不通 method ，测试
 VOID SplitFontImgTest(Mat TextSrc)
 {
 	INT TextPaddingTop = 3;
@@ -468,10 +578,11 @@ VOID SplitFontImgTest(Mat TextSrc)
 	INT Width = TextSrc.cols - 30;
 	Mat Rows[4];
 
-	inRange_DM();
-	return;
-
-
+	//TestFolderImages();
+	//return;
+	
+	//inRange_DM();
+	//return;
 
 	RenameMatWithMD5(TextSrc,"../data/Split/ConsoleArea");
 
@@ -545,6 +656,7 @@ VOID SplitFontImgTest(Mat TextSrc)
 
 
 
+// 分解 四行 输出栏，每行截取文字图段
 VOID SplitFontImg(Mat TextSrc)
 {
 	INT TextPaddingTop = 3;

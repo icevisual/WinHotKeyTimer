@@ -268,7 +268,7 @@ int TEST_SURF()
 	Mat img_scene = imread("../data/Split/IOR-412.bmp", IMREAD_GRAYSCALE);
 
 	Point2f StartPoint;
-	if (SURFDetect(img_object, img_scene, StartPoint))
+	if (SURFDetect(img_object, img_scene(Rect(0, 0, img_scene.cols / 10, img_scene.rows)), StartPoint))
 	{
 		rectangle(
 			img_scene,
