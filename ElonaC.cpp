@@ -554,11 +554,26 @@ BOOL DetectGanhele(Mat img_scene)
 	}
 	return FALSE;
 }
-
+BOOL DetectWhatYouWant(Mat img_scene)
+{
+	static Mat img_object = imread("../data/Src/whatyouwant.bmp ", IMREAD_GRAYSCALE);
+	Point2f StartPoint;
+	if (SURFDetect(img_object, img_scene, StartPoint) > 0)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
 
 VOID RunWishing()
 {
 	// 打开 EC 程序
+		// 运行程序
+		// 判断进入首页
+		// 模拟 a
+		// 判断进入资料选择页面
+		// 模拟 a
+		// 判断 不在资料选择页面
 	// 截屏 获取输出栏
 	// 判断 红色：重启，绿色：保存重启
 	// 判断 干涸：重启，冲出来：重启
