@@ -26,6 +26,17 @@ using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
+BOOL GetLogArea(Mat Src,Mat &Output)
+{
+	Rect LogRect(127, 540, 676, 68);
+	if (Src.empty())
+		return -1;
+	if (Src.rows < LogRect.y + LogRect.height || Src.cols < LogRect.x + LogRect.width)
+		return -2;
+	Output = Src(LogRect);
+	return 1;
+}
+
 // SURF 检测已知 物体
 int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint,int min_matches_size = 15, int rate = 5)
 {
@@ -546,7 +557,7 @@ VOID TestFolderImages()
 // 判断干涸
 BOOL DetectGanhele(Mat img_scene)
 {
-	static Mat img_object = imread("../data/Src/ganhele.jpg ", IMREAD_GRAYSCALE);
+	static Mat img_object = imread("../data/Src/ganhele.jpg", IMREAD_GRAYSCALE);
 	Point2f StartPoint;
 	if (SURFDetect(img_object, img_scene, StartPoint) > 0)
 	{
@@ -556,7 +567,7 @@ BOOL DetectGanhele(Mat img_scene)
 }
 BOOL DetectWhatYouWant(Mat img_scene)
 {
-	static Mat img_object = imread("../data/Src/whatyouwant.bmp ", IMREAD_GRAYSCALE);
+	static Mat img_object = imread("../data/Src/whatyouwant.bmp", IMREAD_GRAYSCALE);
 	Point2f StartPoint;
 	if (SURFDetect(img_object, img_scene, StartPoint) > 0)
 	{
@@ -565,10 +576,52 @@ BOOL DetectWhatYouWant(Mat img_scene)
 	return FALSE;
 }
 
+BOOL DetectRiskerGuidePoint(Mat img_scene)
+{
+	static Mat img_object = imread("../data/Src/guidepoint.bmp", IMREAD_GRAYSCALE);
+	Point2f StartPoint;
+	if (SURFDetect(img_object, img_scene, StartPoint) > 0)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL DetectSelectRisker(Mat img_scene)
+{
+	static Mat img_object = imread("../data/Src/select_risker.bmp", IMREAD_GRAYSCALE);
+	Point2f StartPoint;
+	if (SURFDetect(img_object, img_scene, StartPoint) > 0)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+VOID TestDetect()
+{
+	Mat WhatYouWant = imread("../data/Src/wyw.bmp",IMREAD_COLOR);
+	Mat RiskerGuidePoint = imread("../data/Src/Enter/main.bmp", IMREAD_COLOR);
+	Mat SelectRisker = imread("../data/Src/Enter/select_risker.bmp", IMREAD_COLOR);
+	if (DetectWhatYouWant(WhatYouWant) == FALSE)
+	{
+		printf("WhatYouWant Error");
+	}
+	if (DetectRiskerGuidePoint(RiskerGuidePoint) == FALSE)
+	{
+		printf("RiskerGuidePoint Error");
+	}
+	if (DetectSelectRisker(SelectRisker) == FALSE)
+	{
+		printf("SelectRisker Error");
+	}
+
+}
+
 VOID RunWishing()
 {
 	// 打开 EC 程序
-		// 运行程序
+		// 运行程序 [启动中,小框][全黑，全框][冒险的路标][选择冒险者]
 		// 判断进入首页
 		// 模拟 a
 		// 判断进入资料选择页面
@@ -593,6 +646,8 @@ VOID SplitFontImgTest(Mat TextSrc)
 	INT Width = TextSrc.cols - 30;
 	Mat Rows[4];
 
+	TestDetect();
+	return;
 	//TestFolderImages();
 	//return;
 	
