@@ -26,9 +26,35 @@ using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
-BOOL GetLogArea(Mat Src,Mat &Output)
+
+BOOL GetIORArea(Mat Src, Mat &Output, Rect LogRect)
+{
+	if (Src.empty())
+		return -1;
+	if (Src.rows < LogRect.y + LogRect.height || Src.cols < LogRect.x + LogRect.width)
+		return -2;
+	Output = Src(LogRect);
+	return 1;
+}
+BOOL GetRiskerGuideArea(Mat Src, Mat &Output)
+{
+	Rect LogRect(100, 160, 200, 60);
+	return GetIORArea(Src, Output, LogRect);
+}
+
+BOOL GetSelectRiskerArea(Mat Src, Mat &Output)
+{
+	Rect LogRect(180, 160, 250, 60);
+	return GetIORArea(Src, Output, LogRect);
+}
+
+
+
+BOOL GetLogArea(Mat Src, Mat &Output)
 {
 	Rect LogRect(127, 540, 676, 68);
+	return GetIORArea(Src, Output, LogRect);
+
 	if (Src.empty())
 		return -1;
 	if (Src.rows < LogRect.y + LogRect.height || Src.cols < LogRect.x + LogRect.width)
@@ -37,8 +63,9 @@ BOOL GetLogArea(Mat Src,Mat &Output)
 	return 1;
 }
 
+
 // SURF 检测已知 物体
-int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint,int min_matches_size = 15, int rate = 5)
+int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_matches_size = 15, int rate = 5)
 {
 	resize(img_object, img_object, Size(), rate, rate);
 	resize(img_scene, img_scene, Size(), rate, rate);
@@ -69,7 +96,7 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint,int min_matche
 			good_matches.push_back(knn_matches[i][0]);
 		}
 	}
-//	printf(" good_matches.size = %d \n", good_matches.size());
+	//  printf(" good_matches.size = %d \n", good_matches.size());
 	if (good_matches.empty())
 		return -3;
 	if (good_matches.size() < min_matches_size)
@@ -88,7 +115,7 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint,int min_matche
 		obj.push_back(keypoints_object[good_matches[i].queryIdx].pt);
 		scene.push_back(keypoints_scene[good_matches[i].trainIdx].pt);
 	}
-	
+
 	Mat H = findHomography(obj, scene, RANSAC);
 	//-- Get the corners from the image_1 ( the object to be "detected" )
 	std::vector<Point2f> obj_corners(4);
@@ -118,7 +145,7 @@ INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder = "../data
 	string MD5Value = FileDigest(tname);
 	sprintf_s(new_name, "%s/%s%s", StoreFolder.c_str(), MD5Value.c_str(), Ext.c_str());
 	int r = rename(name, new_name);
-	
+
 	if (r < 0)
 	{
 		remove(name);
@@ -128,10 +155,10 @@ INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder = "../data
 }
 
 // 根据坐标 显示区域
-VOID ShowIOR(Mat image, int x,int y ,int w,int h)
+VOID ShowIOR(Mat image, int x, int y, int w, int h)
 { // GetIOR(127, 540 ,676 ,68);
-	// 127, 540 ,676 ,68
-//	Mat image = cv::imread("../data/Src/shop.bmp");
+  // 127, 540 ,676 ,68
+  //  Mat image = cv::imread("../data/Src/shop.bmp");
 
 	if (x + w > image.cols)
 	{
@@ -142,7 +169,7 @@ VOID ShowIOR(Mat image, int x,int y ,int w,int h)
 		h = image.cols - y;
 	}
 
-	Mat imageROI = image(Rect(x,y,w,h));
+	Mat imageROI = image(Rect(x, y, w, h));
 	namedWindow("src");
 	imshow("src", imageROI);
 	// imwrite("../data/ior1.bmp", imageROI);
@@ -151,8 +178,8 @@ VOID ShowIOR(Mat image, int x,int y ,int w,int h)
 
 
 // 根据坐标 显示区域 同样的尺寸
-VOID ShowIOR_Items(Mat image ,int x, int y, int w, int h)
-{ 
+VOID ShowIOR_Items(Mat image, int x, int y, int w, int h)
+{
 	if (x + w > image.cols)
 	{
 		w = image.cols - x;
@@ -168,7 +195,7 @@ VOID ShowIOR_Items(Mat image ,int x, int y, int w, int h)
 		CHAR name[50] = { 0 };
 		sprintf_s(name, "IOR-%d", i);
 		namedWindow(name);
-		moveWindow(name,0, count * 60);
+		moveWindow(name, 0, count * 60);
 		imshow(name, imageROI);
 
 
@@ -198,8 +225,8 @@ VOID DoThreshold(Mat Src, Mat &out, double thresh, double maxval)
 
 // Method: \n 0: SQDIFF \n 1: SQDIFF NORMED \n 2: TM CCORR \n 3: TM CCORR NORMED \n 4: TM COEFF \n 5: TM COEFF NORMED
 Point GetMatchedStartPointWithFName(
-	string img_name, string templ_name, 
-	int match_method,BOOL use_threshold = TRUE, BOOL show_img = TRUE)
+	string img_name, string templ_name,
+	int match_method, BOOL use_threshold = TRUE, BOOL show_img = TRUE)
 {
 	Mat img = imread(img_name, IMREAD_COLOR);
 	Mat templ = imread(templ_name, IMREAD_COLOR);
@@ -310,7 +337,7 @@ VOID ScanXuyuanFolder_GetLogArea()
 {
 	vector<String> ResultVector;
 
-	if (ListFilesWithExt_NDP("../data/Src/xuyuan", ResultVector,".bmp"))
+	if (ListFilesWithExt_NDP("../data/Src/xuyuan", ResultVector, ".bmp"))
 	{
 		for (int i = 0; i < ResultVector.size(); i++)
 		{
@@ -329,7 +356,7 @@ VOID ScanXuyuanFolder_GetLogArea()
 
 // MergeImagesVertically("../data/Split/ConsoleArea/Diff",".jpg","../data/Split/ConsoleArea/Merge.bmp")
 // 垂直合并图片，用于整合 颜色筛选 素材图片
-VOID MergeImagesVertically(string Folder,string Ext,string MergedFilename,BOOL ShowImage = TRUE)
+VOID MergeImagesVertically(string Folder, string Ext, string MergedFilename, BOOL ShowImage = TRUE)
 {
 	vector<String> ResultVector;
 	if (ListFilesWithExt_NDP(Folder, ResultVector, Ext))
@@ -344,10 +371,10 @@ VOID MergeImagesVertically(string Folder,string Ext,string MergedFilename,BOOL S
 			Mat Src = imread(ResultVector[i], IMREAD_COLOR);
 			temp.push_back(Src);
 			Height += Src.rows;
-			Width = max(Width,Src.cols);
+			Width = max(Width, Src.cols);
 		}
 		Mat Merge(Height, Width, CV_8UC3);
-		INT tmp = 0; 
+		INT tmp = 0;
 		for (int i = 0; i < temp.size(); i++)
 		{
 			//    img4_color.copyTo(canvas(Range::all(), Range(0, img1.cols)));
@@ -356,7 +383,7 @@ VOID MergeImagesVertically(string Folder,string Ext,string MergedFilename,BOOL S
 			temp[i].copyTo(Merge(rga, rgb));
 			tmp += temp[i].rows;
 		}
-		imwrite(MergedFilename,Merge);
+		imwrite(MergedFilename, Merge);
 		if (ShowImage == TRUE)
 		{
 			imshow("Merged", Merge);
@@ -418,7 +445,7 @@ static void on_high_V_thresh_trackbar(int, void *)
 	high_V = max(high_V, low_V + 1);
 	setTrackbarPos("High V", window_detection_name, high_V);
 	redraw();
-	
+
 }
 int inRange_DM()
 {
@@ -438,7 +465,7 @@ int inRange_DM()
 	// lu
 	Mat src2lu = imread("../data/Split/ConsoleArea/d8ce3bef07ee2f4322a0025980ee3e28.jpg", IMREAD_COLOR);
 	Mat srcMerge = imread("../data/Split/ConsoleArea/Merge.bmp", IMREAD_COLOR);
-//	Mat srcMerge = imread("../data/Split/ConsoleArea/8e0e163b4b1d2d73f3e68e79739d64e4.jpg", IMREAD_COLOR);
+	//  Mat srcMerge = imread("../data/Split/ConsoleArea/8e0e163b4b1d2d73f3e68e79739d64e4.jpg", IMREAD_COLOR);
 	// d8ce3bef07ee2f4322a0025980ee3e28
 	Mat frame;
 	frame = srcMerge;
@@ -456,7 +483,7 @@ int inRange_DM()
 
 
 // 使用 inRange 筛选 图片中的 EC 红色部分
-VOID filter_ec_red(Mat src,Mat &output)
+VOID filter_ec_red(Mat src, Mat &output)
 {
 	// Convert from BGR to HSV colorspace
 	cvtColor(src, output, COLOR_BGR2HSV);
@@ -598,20 +625,27 @@ BOOL DetectSelectRisker(Mat img_scene)
 	return FALSE;
 }
 
+
+
+
 VOID TestDetect()
 {
-	Mat WhatYouWant = imread("../data/Src/wyw.bmp",IMREAD_COLOR);
+	Mat WhatYouWant = imread("../data/Src/wyw.bmp", IMREAD_COLOR);
 	Mat RiskerGuidePoint = imread("../data/Src/Enter/main.bmp", IMREAD_COLOR);
-	Mat SelectRisker = imread("../data/Src/Enter/select_risker.bmp", IMREAD_COLOR);
-	if (DetectWhatYouWant(WhatYouWant) == FALSE)
+	Mat SelectRisker = imread("../data/Src/Enter/select.bmp", IMREAD_COLOR);
+	//Main 100 160 200 60
+	//Select 180 160 250 60
+	Mat LogArea;
+	GetLogArea(WhatYouWant, LogArea);
+	if (DetectWhatYouWant(LogArea) == FALSE)
 	{
 		printf("WhatYouWant Error");
 	}
-	if (DetectRiskerGuidePoint(RiskerGuidePoint) == FALSE)
+	if (DetectRiskerGuidePoint(RiskerGuidePoint(Rect(100, 160, 200, 60))) == FALSE)
 	{
 		printf("RiskerGuidePoint Error");
 	}
-	if (DetectSelectRisker(SelectRisker) == FALSE)
+	if (DetectSelectRisker(SelectRisker(Rect(180, 160, 250, 60))) == FALSE)
 	{
 		printf("SelectRisker Error");
 	}
@@ -621,12 +655,12 @@ VOID TestDetect()
 VOID RunWishing()
 {
 	// 打开 EC 程序
-		// 运行程序 [启动中,小框][全黑，全框][冒险的路标][选择冒险者]
-		// 判断进入首页
-		// 模拟 a
-		// 判断进入资料选择页面
-		// 模拟 a
-		// 判断 不在资料选择页面
+	// 运行程序 [启动中,小框][全黑，全框][冒险的路标][选择冒险者]
+	// 判断进入首页
+	// 模拟 a
+	// 判断进入资料选择页面
+	// 模拟 a
+	// 判断 不在资料选择页面
 	// 截屏 获取输出栏
 	// 判断 红色：重启，绿色：保存重启
 	// 判断 干涸：重启，冲出来：重启
@@ -646,22 +680,24 @@ VOID SplitFontImgTest(Mat TextSrc)
 	INT Width = TextSrc.cols - 30;
 	Mat Rows[4];
 
+	system("\"D:\\Program Files\\Git\\usr\\bin\\bash.exe\" D:\\desktop\\Game\\elonaplusRaw\\elona1.22\\save\\sav_IV\\rr.sh");
+
 	TestDetect();
 	return;
 	//TestFolderImages();
 	//return;
-	
+
 	//inRange_DM();
 	//return;
 
-	RenameMatWithMD5(TextSrc,"../data/Split/ConsoleArea");
+	RenameMatWithMD5(TextSrc, "../data/Split/ConsoleArea");
 
 	Mat empty = imread("../data/empty.jpg", IMREAD_COLOR);
-	Mat templ = empty(Rect(0,0, empty.cols, TextHeight));
+	Mat templ = empty(Rect(0, 0, empty.cols, TextHeight));
 	INT Offset = TextSrc.rows;
 	INT TitleHeight = 40;
 	imshow("TextSrc", TextSrc);
-	moveWindow("TextSrc",0,0);
+	moveWindow("TextSrc", 0, 0);
 	for (int i = 0; i < 4; i++)
 	{
 		Offset = TextSrc.rows;
@@ -669,16 +705,16 @@ VOID SplitFontImgTest(Mat TextSrc)
 		Mat temp_binary;
 		Mat temp_match;
 		Mat temp = TextSrc(Rect(TextPaddingLeft, TextYOffset + i * TextHeight, Width, TextHeight));
-		
+
 		cvtColor(temp, temp_gray, COLOR_BGR2GRAY);
-		
+
 		threshold(temp_gray, temp_binary, 70 + i * 25, 255, 0);
 
 		cvtColor(temp_binary, temp_match, COLOR_GRAY2BGR);
 		cv::String temp_window = "temp";
-		cv::String gray_window =  "gray";
+		cv::String gray_window = "gray";
 		cv::String binary_window = "binary";
-		cv::String match_window =  "match";
+		cv::String match_window = "match";
 		cv::String result_window = "result";
 		temp_window += '0' + i;
 		gray_window += '0' + i;
@@ -697,7 +733,7 @@ VOID SplitFontImgTest(Mat TextSrc)
 		moveWindow(binary_window, i * 400, Offset);
 		Offset += TitleHeight + temp_binary.rows;
 		moveWindow(match_window, i * 400, Offset);
-	
+
 		for (int j = 0; j < 6; j++)
 		{
 			result_window = "result";
@@ -753,7 +789,7 @@ VOID SplitFontImg(Mat TextSrc)
 		if (Loc.x > 50)
 		{
 			Rows = temp_match(Rect(0, 0, Loc.x, TextHeight));
-			RenameMatWithMD5(Rows,"../data/Split");
+			RenameMatWithMD5(Rows, "../data/Split");
 		}
 		printf("%d %d \n", Loc.x, Loc.y);
 	}
