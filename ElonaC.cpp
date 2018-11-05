@@ -64,6 +64,21 @@ BOOL GetLogArea(Mat Src, Mat &Output)
 }
 
 
+VOID GetScreenCaptureWithIOR(LPSTR addr, Rect ior_rect)
+{
+	RECT rect;
+	rect.left = ior_rect.x;
+	rect.top = ior_rect.y;
+	rect.right = ior_rect.x + ior_rect.width;
+	rect.bottom = ior_rect.y + ior_rect.height;
+	ScreenCapture(addr, 32, &rect);
+}
+
+VOID GetScreenCapture_LogArea(LPSTR addr)
+{
+	GetScreenCaptureWithIOR(addr, Rect(127, 540, 676, 68));
+}
+
 // SURF 检测已知 物体
 int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_matches_size = 15, int rate = 5)
 {
@@ -81,6 +96,8 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_match
 	Mat descriptors_object, descriptors_scene;
 	detector->detectAndCompute(img_object, noArray(), keypoints_object, descriptors_object);
 	detector->detectAndCompute(img_scene, noArray(), keypoints_scene, descriptors_scene);
+	if (descriptors_scene.empty())
+		return -5;
 	//-- Step 2: Matching descriptor vectors with a FLANN based matcher
 	// Since SURF is a floating-point descriptor NORM_L2 is used
 	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create(DescriptorMatcher::FLANNBASED);
@@ -102,6 +119,9 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_match
 	if (good_matches.size() < min_matches_size)
 		return -4;
 
+	printf("\tkeypoints_object.size = %d \n", keypoints_object.size());
+	printf("\keypoints_scene.size = %d \n", keypoints_scene.size());
+	printf("\good_matches.size = %d \n", good_matches.size());
 	//-- Draw matches
 	Mat img_matches;
 	drawMatches(img_object, keypoints_object, img_scene, keypoints_scene, good_matches, img_matches, Scalar::all(-1),
@@ -588,6 +608,16 @@ BOOL DetectGanhele(Mat img_scene)
 	Point2f StartPoint;
 	if (SURFDetect(img_object, img_scene, StartPoint) > 0)
 	{
+	/*	rectangle(
+			img_scene,
+			Point2f(StartPoint.x, StartPoint.y),
+			Point2f(StartPoint.x + img_object.cols, StartPoint.y + img_object.rows),
+			Scalar(0, 255, 255),
+			1,
+			LINE_8
+		);
+		imshow("img_scene", img_scene);
+		waitKey();*/
 		return TRUE;
 	}
 	return FALSE;
@@ -609,6 +639,7 @@ BOOL DetectRiskerGuidePoint(Mat img_scene)
 	Point2f StartPoint;
 	if (SURFDetect(img_object, img_scene, StartPoint) > 0)
 	{
+	//	printf("StartPoint (%.2f, %.2f)\n", StartPoint.x,StartPoint.y);
 		return TRUE;
 	}
 	return FALSE;
@@ -652,8 +683,208 @@ VOID TestDetect()
 
 }
 
+
+
+int CreateProcessDM(TCHAR * sConLin)
+{
+	char cWindowsDirectory[MAX_PATH];
+
+	//LPTSTR 与 wchar_t* 等价(Unicode环境下)  
+	LPTSTR cWinDir = new TCHAR[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, cWinDir);
+
+	//	LPTSTR sConLin = wcscat_s(cWinDir, MAX_PATH, L"\"D:\\Program Files\\Git\\usr\\bin\\bash.exe\" D:\\desktop\\rr.sh");
+	// wcscat_s(cWinDir, MAX_PATH, L"\"D:\\Program Files\\Git\\usr\\bin\\bash.exe\" D:\\desktop\\rr.sh");
+	wsprintf(cWinDir, sConLin);// L"\"D:\\Program Files\\Git\\usr\\bin\\bash.exe\" D:\\desktop\\rr.sh");
+
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory(&si, sizeof(si));
+	ZeroMemory(&pi, sizeof(pi));
+
+	//创建一个新进程  
+	if (CreateProcess(
+		NULL,   //  指向一个NULL结尾的、用来指定可执行模块的宽字节字符串  
+		cWinDir, // 命令行字符串  
+		NULL, //    指向一个SECURITY_ATTRIBUTES结构体，这个结构体决定是否返回的句柄可以被子进程继承。  
+		NULL, //    如果lpProcessAttributes参数为空（NULL），那么句柄不能被继承。<同上>  
+		false,//    指示新进程是否从调用进程处继承了句柄。   
+		0,  //  指定附加的、用来控制优先类和进程的创建的标  
+			//  CREATE_NEW_CONSOLE  新控制台打开子进程  
+			//  CREATE_SUSPENDED    子进程创建后挂起，直到调用ResumeThread函数  
+		NULL, //    指向一个新进程的环境块。如果此参数为空，新进程使用调用进程的环境  
+		NULL, //    指定子进程的工作路径  
+		&si, // 决定新进程的主窗体如何显示的STARTUPINFO结构体  
+		&pi  // 接收新进程的识别信息的PROCESS_INFORMATION结构体  
+	))
+	{
+		cout << "create process success" << endl;
+
+		//下面两行关闭句柄，解除本进程和新进程的关系，不然有可能不小心调用TerminateProcess函数关掉子进程  
+
+		Sleep(1500);
+		TerminateProcess(pi.hProcess, 0);
+
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+	}
+	else {
+		cerr << "failed to create process" << endl;
+	}
+	return 0;
+}
+
+
+
+static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
+{
+	//  Process.Start(TempExeFilename);
+//	system("\"D:\\Program Files\\Git\\usr\\bin\\bash.exe\" D:\\desktop\\rr.sh");
+	system("D:\\desktop\\rr.sh");
+	return 0;
+}
+
+VOID StartEC()
+{
+	TCHAR * sConLin = L"\"D:\\Program Files\\Git\\usr\\bin\\bash.exe\" D:\\desktop\\rr.sh";
+	// CreateProcessDM(sConLin);
+
+
+	HANDLE  hThreadArray;
+	DWORD   dwThreadIdArray;
+	INT * a = new INT[4]{ 1,2,3,4 };
+	hThreadArray = CreateThread(
+		NULL,                   // default security attributes
+		0,                      // use default stack size  
+		MyThreadFunction,       // thread function name
+		a,          // argument to thread function 
+		0,                      // use default creation flags 
+		&dwThreadIdArray);   // returns the thread identifier 
+
+
+}
+
 VOID RunWishing()
 {
+	TestDetect();
+	return;
+	Mat Screen1  = imread("../data/Temp/LOGAREA-64498098.bmp",IMREAD_COLOR);
+	// ../data/Temp/LOGAREA-64498098.bmp
+	if (DetectGanhele(Screen1))
+	{
+		printf("YES\n");
+	}
+	else
+	{
+		printf("NO\n");
+	}
+	printf("DetectWhatYouWant\t");
+	if (DetectWhatYouWant(Screen1))
+	{
+		printf("YES\n");
+
+	}
+	else
+	{
+		printf("NO\n");
+	}
+
+
+	return;
+
+	StartEC();
+	Sleep(1500);
+	Mat DetectArea;
+	Mat Screen;
+	BOOL DetectRet;
+	CHAR name[250] = { 0 };
+	do {
+		// 1500
+		Sleep(300);
+		sprintf_s(name, "../data/Temp/%d.bmp", GetMilliSecondOfDay());
+		GetScreenCaptureWithIOR(name, Rect(0, 0, 805, 628));
+		Screen = imread(name, IMREAD_COLOR);
+
+		GetRiskerGuideArea(Screen, DetectArea);
+		DetectRet = DetectRiskerGuidePoint(DetectArea);
+		printf("RiskerGuidePointRet = %d\n", DetectRet);
+	} while (DetectRet == FALSE);
+
+//	imshow("Screen RiskerGuidePoint",Screen);
+
+	ConvertChar2KeyWordAndSimulate("a");
+	Sleep(1000);
+	ConvertChar2KeyWordAndSimulate("a");
+
+	Sleep(1500);
+	do {
+		// 1500
+		Sleep(500);
+		sprintf_s(name, "../data/Temp/SCRE-%d.bmp", GetMilliSecondOfDay());
+		GetScreenCaptureWithIOR(name, Rect(0, 0, 805, 628));
+		Screen = imread(name, IMREAD_COLOR);
+
+		GetSelectRiskerArea(Screen, DetectArea);
+		DetectRet = DetectRiskerGuidePoint(DetectArea);
+		printf("SelectRiskerRet = %d\n", DetectRet);
+	} while (DetectRet == TRUE);
+
+	printf("Enter Game\n");
+
+
+	do {
+		
+		ConvertChar2KeyWordAndSimulate("q");
+		Sleep(100);
+		ConvertChar2KeyWordAndSimulate("a");
+
+		sprintf_s(name, "../data/Temp/LOGAREA-%d.bmp", GetMilliSecondOfDay());
+		GetScreenCapture_LogArea(name);
+		Screen = imread(name, IMREAD_COLOR);
+
+		printf("Detect Color:\t%s \r\t", name);
+		if (JudgeRedPoint(Screen))
+		{
+			printf("RED\n");
+			break;
+			// Restart
+		}
+		else if (JudgeGreenPoint(Screen))
+		{
+			printf("GREEN\n");
+			break;
+			// Save
+		}
+		else
+		{
+			printf("Not RED or GREEN\n");
+			printf("DetectGanhele\t");
+			// ../data/Temp/LOGAREA-64498098.bmp
+			if (DetectGanhele(Screen))
+			{
+				printf("YES\n");
+			}
+			else
+			{
+				printf("NO\n");
+			}
+			printf("DetectWhatYouWant\t");
+			if (DetectWhatYouWant(Screen))
+			{
+				printf("YES\n");
+				break;
+			}
+			else
+			{
+				printf("NO\n");
+			}
+		}
+		Sleep(3000);
+	} while (true);
+
+
+	waitKey(0);
 	// 打开 EC 程序
 	// 运行程序 [启动中,小框][全黑，全框][冒险的路标][选择冒险者]
 	// 判断进入首页
@@ -669,7 +900,6 @@ VOID RunWishing()
 }
 
 
-
 // 分解 四行 输出栏，每行截取文字图段，使用 templateMatch ，轮用不通 method ，测试
 VOID SplitFontImgTest(Mat TextSrc)
 {
@@ -680,7 +910,6 @@ VOID SplitFontImgTest(Mat TextSrc)
 	INT Width = TextSrc.cols - 30;
 	Mat Rows[4];
 
-	system("\"D:\\Program Files\\Git\\usr\\bin\\bash.exe\" D:\\desktop\\Game\\elonaplusRaw\\elona1.22\\save\\sav_IV\\rr.sh");
 
 	TestDetect();
 	return;
@@ -817,19 +1046,4 @@ VOID SplitFontImg_AutoIOR(string filename)
 	else
 		IOR = Src;
 	SplitFontImg(IOR);
-}
-
-VOID GetScreenCaptureWithIOR(LPSTR addr, Rect ior_rect)
-{
-	RECT rect;
-	rect.left = ior_rect.x;
-	rect.top = ior_rect.y;
-	rect.right = ior_rect.x + ior_rect.width;
-	rect.bottom = ior_rect.y + ior_rect.height;
-	ScreenCapture(addr, 32, &rect);
-}
-
-VOID GetScreenCapture_LogArea(LPSTR addr)
-{
-	GetScreenCaptureWithIOR(addr, Rect(127, 540, 676, 68));
 }

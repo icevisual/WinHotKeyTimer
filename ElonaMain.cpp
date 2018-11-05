@@ -364,14 +364,7 @@ INT main(int argc, TCHAR * argv[]) {
 			}
 			else if (m_HotKeyId2 == msg.wParam) {
 
-				for (int i = 0; i < 10; i++)
-				{
-					WORD  Keys[] = {
-						VK_NUMPAD4
-					};
-					SimulateKeyArrayInput(Keys, 1);
-					Sleep(300);
-				}
+				RunWishing();
 			}
 			else if (m_HotKeyId3 == msg.wParam) {
 				// Exit

@@ -29,6 +29,7 @@ using namespace cv::xfeatures2d;
 #ifndef ElonaCH
 #define ElonaCH
 
+VOID RunWishing();
 
 INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder = "../data/Temp/", String Ext = ".jpg");
 // Using SURF to Dectect ping juan In Shop List Items Img
@@ -68,7 +69,6 @@ VOID SplitFontImg_AutoIOR(string filename);
 VOID GetScreenCaptureWithIOR(LPSTR addr, Rect ior_rect);
 
 VOID GetScreenCapture_LogArea(LPSTR addr);
-
 
 
 
