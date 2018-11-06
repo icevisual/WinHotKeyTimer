@@ -27,6 +27,30 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 
 
+VOID GetHMS1(CHAR * output)
+{
+	SYSTEMTIME sys;
+	GetLocalTime(&sys);
+	sprintf_s(output,64, "%02d:%02d:%02d.%03d", sys.wHour, sys.wMinute, sys.wSecond, sys.wMilliseconds);
+}
+
+
+static CHAR g_CunnentTime[64] = { 0 };
+static CHAR g_MSG[640] = { 0 };
+#define SCENTREALM_DEBUG
+
+#ifdef SCENTREALM_DEBUG
+#define DEBUG_LOG(fmt, ...) sprintf_s(g_MSG,640, fmt, __VA_ARGS__) ;GetHMS1(g_CunnentTime); fprintf(stdout, "[%s] %s",g_CunnentTime , g_MSG)
+// #define DEBUG_LOG(fmt, ...) _stprintf_s(g_MSG, TEXT(fmt), __VA_ARGS__) ;GetHMS(g_CunnentTime); _ftprintf(stdout, TEXT("[%s] %s"),g_CunnentTime , g_MSG)
+
+#else
+#define DEBUG_LOG(fmt, ...) 
+
+#endif
+
+
+
+
 BOOL GetIORArea(Mat Src, Mat &Output, Rect LogRect)
 {
 	if (Src.empty())
@@ -119,10 +143,10 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_match
 	if (good_matches.size() < min_matches_size)
 		return -4;
 
-	printf("\r\n\t\tkeypoints_object.size = %d \n", keypoints_object.size());
-	printf("\t\tkeypoints_scene.size = %d \n", keypoints_scene.size());
-	printf("\t\tgood_matches.size = %d \n", good_matches.size());
-	printf("\t\tPercent = %.2f \n", good_matches.size() * 1.0 / keypoints_object.size());
+	DEBUG_LOG("\t\tkeypoints_object.size = %d \n", keypoints_object.size());
+	DEBUG_LOG("\t\tkeypoints_scene.size = %d \n", keypoints_scene.size());
+	DEBUG_LOG("\t\tgood_matches.size = %d \n", good_matches.size());
+	DEBUG_LOG("\t\tPercent = %.2f \n", good_matches.size() * 1.0 / keypoints_object.size());
 
 	if (good_matches.size() * 1.0 / keypoints_object.size() < 0.4)
 		return -6;
@@ -529,7 +553,7 @@ BOOL JudgeHasWhitePoint(Mat Src)
 	double minVal; double maxVal;
 	Point minLoc; Point maxLoc;
 	minMaxLoc(Src, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
-	printf("JudgeHasWhitePoint >> minVal = %.2lf maxVal = %.2lf minLoc=(%d,%d) maxLoc=(%d,%d)\n", minVal, maxVal, minLoc.x, minLoc.y, maxLoc.x, maxLoc.y);
+	// DEBUG_LOG("JudgeHasWhitePoint >> minVal = %.2lf maxVal = %.2lf minLoc=(%d,%d) maxLoc=(%d,%d)\n", minVal, maxVal, minLoc.x, minLoc.y, maxLoc.x, maxLoc.y);
 
 	if (minVal < 1e-6 && maxVal < 1e-6)
 		return FALSE;
@@ -744,11 +768,13 @@ static DWORD WINAPI ResetRestartThreadFunction(LPVOID lpParam)
 
 VOID SaveEC()
 {
+	DEBUG_LOG("Save EC\n");
 	system("D:\\desktop\\sv.sh");
 }
 
 VOID StartEC()
 {
+	DEBUG_LOG("Start EC\n");
 	HANDLE  hThreadArray;
 	DWORD   dwThreadIdArray;
 	hThreadArray = CreateThread(
@@ -763,6 +789,7 @@ VOID StartEC()
 
 VOID SimulateDrink()
 {
+	DEBUG_LOG("SimulateDrink\n");
 	ConvertChar2KeyWordAndSimulate("q");
 	Sleep(100);
 	ConvertChar2KeyWordAndSimulate("a");
@@ -771,6 +798,7 @@ VOID SimulateDrink()
 
 VOID SimulateQuiteGame()
 {
+	DEBUG_LOG("SimulateQuiteGame\n");
 	ConvertChar2KeyWordAndSimulate("S");
 	Sleep(200);
 	ConvertChar2KeyWordAndSimulate("a");
@@ -781,6 +809,7 @@ VOID SimulateQuiteGame()
 
 VOID SimulateEnterGame()
 {
+	DEBUG_LOG("SimulateEnterGame\n");
 	ConvertChar2KeyWordAndSimulate("a");
 	Sleep(200);
 	ConvertChar2KeyWordAndSimulate("a");
@@ -794,7 +823,7 @@ VOID Gfname(string storage,string prefix,string suffix, string &output)
 	output = storage + "/" + prefix + temp + suffix;
 }
 
-VOID RunWishing()
+VOID Testfff()
 {
 	//Mat Screen1  = imread("../data/Temp/40661682/LOGAREA-40671469.bmp",IMREAD_COLOR);
 	//// ../data/Temp/LOGAREA-64498098.bmp
@@ -826,20 +855,27 @@ VOID RunWishing()
 	//}
 	//SaveEC();
 	//return;
-	RESTERT:
-	StartEC();
+}
 
-	Sleep(1500);
+VOID RunWishing()
+{
 	Mat DetectArea;
 	Mat Screen;
 	BOOL DetectRet;
 	CHAR name[250] = { 0 };
 	CHAR storage[100] = { 0 };
+	string fname;
 
+	int Score = 0;
+RESTERT:
+
+	int index = 0;
+	StartEC();
+
+	Sleep(1500);
 	int BatchNumber = GetMilliSecondOfDay();
 	sprintf_s(storage, "../data/Temp/%d", BatchNumber);
 	
-	string fname;
 
 	MakeDIR(storage);
 
@@ -854,10 +890,8 @@ VOID RunWishing()
 
 		GetRiskerGuideArea(Screen, DetectArea);
 		DetectRet = DetectRiskerGuidePoint(DetectArea);
-		printf("RiskerGuidePointRet = %d\n", DetectRet);
+		DEBUG_LOG("RiskerGuide = %d\n", DetectRet);
 	} while (DetectRet == FALSE);
-
-//	imshow("Screen RiskerGuidePoint",Screen);
 
 	SimulateEnterGame();
 
@@ -871,65 +905,78 @@ VOID RunWishing()
 
 		GetSelectRiskerArea(Screen, DetectArea);
 		DetectRet = DetectRiskerGuidePoint(DetectArea);
-		printf("SelectRiskerRet = %d\n", DetectRet);
+		DEBUG_LOG("SelectRisker = %d\n", DetectRet);
 	} while (DetectRet == TRUE);
 
-	printf("Enter Game\n");
+	DEBUG_LOG("Enter Game\n");
 	
 	do {
 		
 		SimulateDrink();
+		index++;
 		Gfname(storage, "LOGAREA-", ".bmp", fname);
 		strcpy_s(name, fname.c_str());
 		GetScreenCapture_LogArea(name);
 		Screen = imread(name, IMREAD_COLOR);
 
-		printf("Detect Color:%s \n\r", name);
+		DEBUG_LOG("Detect Color From File: %s \r\n", name);
 		if (JudgeRedPoint(Screen))
 		{
-			printf("RED\n");
+			DEBUG_LOG(">>> RED Detected\n");
 			SimulateQuiteGame();
 			goto RESTERT;
 			// Restart
 		}
 		else if (JudgeGreenPoint(Screen))
 		{
-			printf("GREEN\n");
+			Score += 1;
+			DEBUG_LOG(">>> GREEN Detected\n");
 			SimulateQuiteGame();
 			SaveEC();
+			DEBUG_LOG("DetectGanhele\n");
+			if (DetectGanhele(Screen))
+			{
+				DEBUG_LOG(">>> YES,Score = %d\n", Score);
+				break;
+			}
 			goto RESTERT;
 			// Save
 		}
 		else
 		{
-			printf("Not RED or GREEN\n");
-			printf("DetectGanhele\t");
+			DEBUG_LOG(">>> Not RED or GREEN\n");
+			DEBUG_LOG("DetectGanhele\n");
 			// ../data/Temp/LOGAREA-64498098.bmp
 			if (DetectGanhele(Screen))
 			{
-				printf("YES\n");
+
+				DEBUG_LOG(">>> YES,Score = %d\n", Score);
+				if (index == 1)
+				{
+					DEBUG_LOG("Ganhele Detected At First Drink\n");
+					break;
+				}
 				SimulateQuiteGame();
 				goto RESTERT;
 			}
 			else
 			{
-				printf("NO\n");
+				DEBUG_LOG(">>> NO\n");
 			}
-			printf("DetectWhatYouWant\t");
+			DEBUG_LOG("DetectWhatYouWant\n");
 			if (DetectWhatYouWant(Screen))
 			{
-				printf("YES\n");
+				DEBUG_LOG(">>> YES\n");
 				break;
 			}
 			else
 			{
-				printf("NO\n");
+				DEBUG_LOG(">>> NO\n");
 			}
 		}
 	} while (true);
 
-	printf("DetectWhatYouWant YESSS\n");
-	waitKey(0);
+	DEBUG_LOG("Simulate Stopped\n");
 	// 打开 EC 程序
 	// 运行程序 [启动中,小框][全黑，全框][冒险的路标][选择冒险者]
 	// 判断进入首页
