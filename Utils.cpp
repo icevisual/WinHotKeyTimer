@@ -4,9 +4,20 @@
 #include <iostream>  
 #include <map>
 #include <io.h>
+#include <direct.h>
 using namespace std;
 using std::vector;
 using std::string;
+
+int MakeDIR(string dir)
+{
+	if (_access(dir.c_str(), 0) == -1)
+	{
+		int flag = _mkdir(dir.c_str());
+		return flag;
+	}
+	return 0;
+}
 
 //LPBYTE lpBuf = (LPBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwNeedSize);
 //if (lpBuf)

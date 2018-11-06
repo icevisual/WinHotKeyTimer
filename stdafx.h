@@ -23,6 +23,8 @@ using namespace std;
 using std::string;
 using std::vector;
 
+int MakeDIR(string dir);
+
 INT GetMilliSecondOfDay();
 
 VOID GetHMS(TCHAR * output);

@@ -119,9 +119,15 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_match
 	if (good_matches.size() < min_matches_size)
 		return -4;
 
-	printf("\tkeypoints_object.size = %d \n", keypoints_object.size());
-	printf("\keypoints_scene.size = %d \n", keypoints_scene.size());
-	printf("\good_matches.size = %d \n", good_matches.size());
+	printf("\r\n\t\tkeypoints_object.size = %d \n", keypoints_object.size());
+	printf("\t\tkeypoints_scene.size = %d \n", keypoints_scene.size());
+	printf("\t\tgood_matches.size = %d \n", good_matches.size());
+	printf("\t\tPercent = %.2f \n", good_matches.size() * 1.0 / keypoints_object.size());
+
+	if (good_matches.size() * 1.0 / keypoints_object.size() < 0.4)
+		return -6;
+
+
 	//-- Draw matches
 	Mat img_matches;
 	drawMatches(img_object, keypoints_object, img_scene, keypoints_scene, good_matches, img_matches, Scalar::all(-1),
@@ -479,14 +485,10 @@ int inRange_DM()
 	createTrackbar("Low V", window_detection_name, &low_V, max_value, on_low_V_thresh_trackbar);
 	createTrackbar("High V", window_detection_name, &high_V, max_value, on_high_V_thresh_trackbar);
 
-	Mat src0hong = imread("../data/Split/ConsoleArea/4a2e0a21024688dd9355c0d737626910.jpg", IMREAD_COLOR);
-	// bai
-	Mat src1bai = imread("../data/Split/ConsoleArea/6edcf4542d873097e366d2dfe2d2f0f4.jpg", IMREAD_COLOR);
-	// lu
-	Mat src2lu = imread("../data/Split/ConsoleArea/d8ce3bef07ee2f4322a0025980ee3e28.jpg", IMREAD_COLOR);
-	Mat srcMerge = imread("../data/Split/ConsoleArea/Merge.bmp", IMREAD_COLOR);
-	//  Mat srcMerge = imread("../data/Split/ConsoleArea/8e0e163b4b1d2d73f3e68e79739d64e4.jpg", IMREAD_COLOR);
-	// d8ce3bef07ee2f4322a0025980ee3e28
+	Mat srcMerge = imread("../data/Split/ConsoleArea/Merge1.bmp", IMREAD_COLOR);
+	// ../data/Temp/40661682/LOGAREA-40671469.bmp
+	//Mat srcMerge = imread("../data/Temp/40661682/LOGAREA-40671469.bmp", IMREAD_COLOR);
+
 	Mat frame;
 	frame = srcMerge;
 	// Convert from BGR to HSV colorspace
@@ -508,7 +510,8 @@ VOID filter_ec_red(Mat src, Mat &output)
 	// Convert from BGR to HSV colorspace
 	cvtColor(src, output, COLOR_BGR2HSV);
 	// Detect the object based on HSV Range Values
-	inRange(output, Scalar(0, 28, 201), Scalar(180, 80, 224), output);
+//	inRange(output, Scalar(0, 28, 201), Scalar(180, 80, 224), output);
+	inRange(output, Scalar(0, 28, 96), Scalar(8, 255, 255), output);
 }
 // 使用 inRange 筛选 图片中的 EC 绿色部分
 VOID filter_ec_green(Mat src, Mat &output)
@@ -626,7 +629,7 @@ BOOL DetectWhatYouWant(Mat img_scene)
 {
 	static Mat img_object = imread("../data/Src/whatyouwant.bmp", IMREAD_GRAYSCALE);
 	Point2f StartPoint;
-	if (SURFDetect(img_object, img_scene, StartPoint) > 0)
+	if (SURFDetect(img_object, img_scene, StartPoint,100) > 0)
 	{
 		return TRUE;
 	}
@@ -764,45 +767,93 @@ VOID StartEC()
 
 
 }
+VOID SimulateDrink()
+{
+	ConvertChar2KeyWordAndSimulate("q");
+	Sleep(100);
+	ConvertChar2KeyWordAndSimulate("a");
+	Sleep(100);
+}
+
+VOID SimulateQuiteGame()
+{
+	ConvertChar2KeyWordAndSimulate("S");
+	Sleep(200);
+	ConvertChar2KeyWordAndSimulate("a");
+	Sleep(300);
+	WORD Keys[] = {VK_RETURN};
+	SimulateKeyArrayInput(Keys, 1);
+}
+
+VOID SimulateEnterGame()
+{
+	ConvertChar2KeyWordAndSimulate("a");
+	Sleep(200);
+	ConvertChar2KeyWordAndSimulate("a");
+	Sleep(1500);
+}
+
+VOID Gfname(string storage,string prefix,string suffix, string &output)
+{
+	CHAR temp[50] = {0};
+	sprintf_s(temp, "%d", GetMilliSecondOfDay());
+	output = storage + "/" + prefix + temp + suffix;
+}
 
 VOID RunWishing()
 {
-	TestDetect();
-	return;
-	Mat Screen1  = imread("../data/Temp/LOGAREA-64498098.bmp",IMREAD_COLOR);
-	// ../data/Temp/LOGAREA-64498098.bmp
-	if (DetectGanhele(Screen1))
-	{
-		printf("YES\n");
-	}
-	else
-	{
-		printf("NO\n");
-	}
-	printf("DetectWhatYouWant\t");
-	if (DetectWhatYouWant(Screen1))
-	{
-		printf("YES\n");
+	//Mat Screen1  = imread("../data/Temp/40661682/LOGAREA-40671469.bmp",IMREAD_COLOR);
+	//// ../data/Temp/LOGAREA-64498098.bmp
+	//GetLogArea(Screen1, Screen1);
+	//if (DetectWhatYouWant(Screen1) == TRUE)
+	//{
+	//	printf("YES\n");
+	//}
+	//else
+	//{
+	//	printf("NO\n");
+	//}
 
-	}
-	else
-	{
-		printf("NO\n");
-	}
+	//if (JudgeRedPoint(Screen1) == TRUE)
+	//{
+	//	printf("YES\n");
+	//}
+	//else
+	//{
+	//	printf("NO\n");
+	//}
+	//if (JudgeGreenPoint(Screen1) == TRUE)
+	//{
+	//	printf("YES\n");
+	//}
+	//else
+	//{
+	//	printf("NO\n");
+	//}
 
-
-	return;
-
+	//return;
+	RESTERT:
 	StartEC();
 	Sleep(1500);
 	Mat DetectArea;
 	Mat Screen;
 	BOOL DetectRet;
 	CHAR name[250] = { 0 };
+	CHAR storage[100] = { 0 };
+
+	int BatchNumber = GetMilliSecondOfDay();
+	sprintf_s(storage, "../data/Temp/%d", BatchNumber);
+	
+	string fname;
+
+	MakeDIR(storage);
+
 	do {
 		// 1500
 		Sleep(300);
-		sprintf_s(name, "../data/Temp/%d.bmp", GetMilliSecondOfDay());
+		Gfname(storage, "SCRE-", ".bmp", fname);
+		strcpy_s(name, fname.c_str());
+
 		GetScreenCaptureWithIOR(name, Rect(0, 0, 805, 628));
 		Screen = imread(name, IMREAD_COLOR);
 
@@ -813,15 +864,13 @@ VOID RunWishing()
 
 //	imshow("Screen RiskerGuidePoint",Screen);
 
-	ConvertChar2KeyWordAndSimulate("a");
-	Sleep(1000);
-	ConvertChar2KeyWordAndSimulate("a");
+	SimulateEnterGame();
 
-	Sleep(1500);
 	do {
 		// 1500
 		Sleep(500);
-		sprintf_s(name, "../data/Temp/SCRE-%d.bmp", GetMilliSecondOfDay());
+		Gfname(storage, "SCRE-", ".bmp", fname);
+		strcpy_s(name, fname.c_str());
 		GetScreenCaptureWithIOR(name, Rect(0, 0, 805, 628));
 		Screen = imread(name, IMREAD_COLOR);
 
@@ -831,29 +880,28 @@ VOID RunWishing()
 	} while (DetectRet == TRUE);
 
 	printf("Enter Game\n");
-
-
+	
 	do {
 		
-		ConvertChar2KeyWordAndSimulate("q");
-		Sleep(100);
-		ConvertChar2KeyWordAndSimulate("a");
-
-		sprintf_s(name, "../data/Temp/LOGAREA-%d.bmp", GetMilliSecondOfDay());
+		SimulateDrink();
+		Gfname(storage, "LOGAREA-", ".bmp", fname);
+		strcpy_s(name, fname.c_str());
 		GetScreenCapture_LogArea(name);
 		Screen = imread(name, IMREAD_COLOR);
 
-		printf("Detect Color:\t%s \r\t", name);
+		printf("Detect Color:%s \n\r", name);
 		if (JudgeRedPoint(Screen))
 		{
 			printf("RED\n");
-			break;
+			SimulateQuiteGame();
+			goto RESTERT;
 			// Restart
 		}
 		else if (JudgeGreenPoint(Screen))
 		{
 			printf("GREEN\n");
-			break;
+			SimulateQuiteGame();
+			goto RESTERT;
 			// Save
 		}
 		else
@@ -864,6 +912,8 @@ VOID RunWishing()
 			if (DetectGanhele(Screen))
 			{
 				printf("YES\n");
+				SimulateQuiteGame();
+				goto RESTERT;
 			}
 			else
 			{
@@ -880,10 +930,9 @@ VOID RunWishing()
 				printf("NO\n");
 			}
 		}
-		Sleep(3000);
 	} while (true);
 
-
+	printf("DetectWhatYouWant YESSS\n");
 	waitKey(0);
 	// 打开 EC 程序
 	// 运行程序 [启动中,小框][全黑，全框][冒险的路标][选择冒险者]
@@ -909,15 +958,6 @@ VOID SplitFontImgTest(Mat TextSrc)
 	INT TextYOffset = 4;
 	INT Width = TextSrc.cols - 30;
 	Mat Rows[4];
-
-
-	TestDetect();
-	return;
-	//TestFolderImages();
-	//return;
-
-	//inRange_DM();
-	//return;
 
 	RenameMatWithMD5(TextSrc, "../data/Split/ConsoleArea");
 
