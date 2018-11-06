@@ -798,13 +798,17 @@ VOID SimulateDrink()
 
 VOID SimulateQuiteGame()
 {
+	GetScreenCaptureWithIOR("../data/Temp/Before-SimulateQuiteGame.bmp", Rect(0, 0, 805, 628));
+	Sleep(500);
+	GetScreenCaptureWithIOR("../data/Temp/Mid-SimulateQuiteGame.bmp", Rect(0, 0, 805, 628));
 	DEBUG_LOG("SimulateQuiteGame\n");
 	ConvertChar2KeyWordAndSimulate("S");
 	Sleep(200);
 	ConvertChar2KeyWordAndSimulate("a");
-	Sleep(300);
+	Sleep(400);
 	WORD Keys[] = {VK_RETURN};
 	SimulateKeyArrayInput(Keys, 1);
+	GetScreenCaptureWithIOR("../data/Temp/After-SimulateQuiteGame.bmp", Rect(0, 0, 805, 628));
 }
 
 VOID SimulateEnterGame()
@@ -916,7 +920,8 @@ RESTERT:
 		index++;
 		Gfname(storage, "LOGAREA-", ".bmp", fname);
 		strcpy_s(name, fname.c_str());
-		GetScreenCapture_LogArea(name);
+	//	GetScreenCapture_LogArea(name);
+		GetScreenCaptureWithIOR(name, Rect(127, 570, 676, 38));
 		Screen = imread(name, IMREAD_COLOR);
 
 		DEBUG_LOG("Detect Color From File: %s \r\n", name);
