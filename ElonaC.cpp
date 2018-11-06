@@ -726,47 +726,41 @@ int CreateProcessDM(TCHAR * sConLin)
 
 		//下面两行关闭句柄，解除本进程和新进程的关系，不然有可能不小心调用TerminateProcess函数关掉子进程  
 
-		Sleep(1500);
-		TerminateProcess(pi.hProcess, 0);
-
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 	}
 	else {
+		ShowLastErrorMsg(L"CreateProcess");
 		cerr << "failed to create process" << endl;
 	}
 	return 0;
 }
 
-
-
-static DWORD WINAPI MyThreadFunction(LPVOID lpParam)
+static DWORD WINAPI ResetRestartThreadFunction(LPVOID lpParam)
 {
-	//  Process.Start(TempExeFilename);
-//	system("\"D:\\Program Files\\Git\\usr\\bin\\bash.exe\" D:\\desktop\\rr.sh");
 	system("D:\\desktop\\rr.sh");
 	return 0;
 }
 
+VOID SaveEC()
+{
+	system("D:\\desktop\\sv.sh");
+}
+
 VOID StartEC()
 {
-	TCHAR * sConLin = L"\"D:\\Program Files\\Git\\usr\\bin\\bash.exe\" D:\\desktop\\rr.sh";
-	// CreateProcessDM(sConLin);
-
-
 	HANDLE  hThreadArray;
 	DWORD   dwThreadIdArray;
-	INT * a = new INT[4]{ 1,2,3,4 };
 	hThreadArray = CreateThread(
 		NULL,                   // default security attributes
 		0,                      // use default stack size  
-		MyThreadFunction,       // thread function name
-		a,          // argument to thread function 
+		ResetRestartThreadFunction,       // thread function name
+		NULL,          // argument to thread function 
 		0,                      // use default creation flags 
 		&dwThreadIdArray);   // returns the thread identifier 
-
-
 }
+
+
 VOID SimulateDrink()
 {
 	ConvertChar2KeyWordAndSimulate("q");
@@ -830,10 +824,11 @@ VOID RunWishing()
 	//{
 	//	printf("NO\n");
 	//}
-
+	//SaveEC();
 	//return;
 	RESTERT:
 	StartEC();
+
 	Sleep(1500);
 	Mat DetectArea;
 	Mat Screen;
@@ -901,6 +896,7 @@ VOID RunWishing()
 		{
 			printf("GREEN\n");
 			SimulateQuiteGame();
+			SaveEC();
 			goto RESTERT;
 			// Save
 		}
