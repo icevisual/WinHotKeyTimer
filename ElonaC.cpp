@@ -935,17 +935,29 @@ VOID SimulateClickRight()
 	SimulateMouseClick(1012, 983);
 }
 
-VOID SmOpenAndClick()
+VOID FireSoftKeyBoard_CN() 
 {
+	DEBUG_LOG("Fire SoftKeyboard \n");
 	SimulateMouseClick(1716, 1059);
 	Sleep(500);
+}
+VOID HoldUp_ForTime()
+{
+	DEBUG_LOG("Hold Up Key For 20 s\n");
 	SimulateMouseClick_Hold(941, 917);
-
-	Sleep(10000);
+	Sleep(20000);
 	LeftClick_Release();
-	//SimulateClickUp();
-	//SimulateClickUp();
-	//SimulateClickUp();
+}
+
+VOID SmOpenAndClick()
+{
+	static bool SKB_Fired = false;
+	if (!SKB_Fired)
+	{
+		FireSoftKeyBoard_CN();
+		SKB_Fired = true;
+	}
+	HoldUp_ForTime();
 }
 
 VOID CutLeftStateBar()
@@ -955,11 +967,18 @@ VOID CutLeftStateBar()
 	Gfname("../data/Temp/LSB", "SCRE-", ".bmp", fname);
 	strcpy_s(name, fname.c_str());
 	GetScreenCaptureWithIOR(name,Rect(0,400,70,125));
+
+	//GetScreenCaptureWithIOR(name, Rect(0, 0, 805, 628));
 }
 
 VOID RunTrain()
 {
+	STARTR:
 	SmOpenAndClick();
+	DEBUG_LOG("You Can Stop In 4 Seconds\n");
+	Sleep(4000);
+	goto STARTR;
+
 	return;
 	LPPOINT cPoint = new POINT;
 	::GetCursorPos(cPoint);
