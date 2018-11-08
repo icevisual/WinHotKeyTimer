@@ -39,6 +39,72 @@ DWORD WINAPI PlayScriptThreadFunction(LPVOID lpParam) {
 	g_isRunnung = FALSE;
 	return 0;
 }
+VOID InitScentrealmFunctions(HINSTANCE g_ScentRealm_DLL, struct ScentrealmRuntime * runtime);
+
+VOID InitScentrealmFunctions(HINSTANCE g_ScentRealm_DLL, struct ScentrealmRuntime * runtime) {
+	static int is_inited = 0;
+	if (is_inited) return;
+
+	g_ScentRealm_DLL = LoadLibrary(L"scentrealm-client.dll");
+	if (g_ScentRealm_DLL)
+	{
+		runtime->DllState = DS_LOADED;
+
+		runtime->pInit = (pScentrealmInit)GetProcAddress(g_ScentRealm_DLL, "ScentrealmInit");
+		runtime->pPlaySmell = (pScentrealmPlaySmell)GetProcAddress(g_ScentRealm_DLL, "ScentrealmPlaySmell");
+		runtime->pStopPlay = (pScentrealmStopPlay)GetProcAddress(g_ScentRealm_DLL, "ScentrealmStopPlay");
+		runtime->pGetConnectStatus = (pScentrealmGetConnectStatus)GetProcAddress(g_ScentRealm_DLL, "ScentrealmGetConnectStatus");
+		runtime->pClose = (pScentrealmClose)GetProcAddress(g_ScentRealm_DLL, "ScentrealmClose");
+
+		if (!runtime->pInit)
+		{
+			_tprintf(_T("pScentrealmInit Load Failed \n"));
+			runtime->DllState ^= 0x01;
+		}
+		if (!runtime->pPlaySmell)
+		{
+			_tprintf(_T("pScentrealmPlaySmell Load Failed \n"));
+			runtime->DllState ^= 0x02;
+		}
+		if (!runtime->pStopPlay)
+		{
+			_tprintf(_T("pScentrealmStopPlay Load Failed \n"));
+			runtime->DllState ^= 0x04;
+		}
+		if (!runtime->pGetConnectStatus)
+		{
+			_tprintf(_T("pScentrealmGetConnectStatus Load Failed \n"));
+			runtime->DllState ^= 0x08;
+		}
+		if (!runtime->pClose)
+		{
+			_tprintf(_T("pScentrealmClose Load Failed \n"));
+			runtime->DllState ^= 0x10;
+		}
+		is_inited = 1;
+		if (runtime->DllState == DS_LOADED) {
+			runtime->DllState = DS_LOADOV;
+			int init_ret = runtime->pInit();
+			runtime->ConnectState = runtime->pGetConnectStatus();
+			if (CS_DEV_CONNECTED == runtime->ConnectState) {
+				_tprintf(_T("ScentrealmDll Init Success \n"));
+			}
+			else {
+				if (CS_DEV_UNCONNECTED == runtime->ConnectState)
+					_tprintf(_T("ScentrealmDll Init Failed, Device Not Connected \n"));
+				if (CS_CTR_UNCONNECTED == runtime->ConnectState)
+					_tprintf(_T("ScentrealmDll Init Failed, Controller Not Connected \n"));
+			}
+		}
+	}
+	else
+	{
+		runtime->DllState = DS_UNLOAD;
+		runtime->LastErrorCode = GetLastError();
+		ShowLastErrorMsg(_T("LoadLibrary"));
+	}
+	//FreeLibrary(my_dll);
+}
 
 // 从 srt 文件 气味播放指令
 BOOLEAN LoadSrtInstructionFromFile(TCHAR * filename) {

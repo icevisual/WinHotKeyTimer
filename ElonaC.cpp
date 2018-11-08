@@ -1,7 +1,7 @@
 // WinGHotKey.cpp : 定义控制台应用程序的入口点。
 //
 #include "stdafx.h"
-// #include "ElonaC.h"
+#include "ElonaC.h"
 //
 #include "opencv2/core.hpp"
 #include <opencv2/opencv.hpp>  
@@ -26,30 +26,7 @@ using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
-
-VOID GetHMS1(CHAR * output)
-{
-	SYSTEMTIME sys;
-	GetLocalTime(&sys);
-	sprintf_s(output,64, "%02d:%02d:%02d.%03d", sys.wHour, sys.wMinute, sys.wSecond, sys.wMilliseconds);
-}
-
-
-static CHAR g_CunnentTime[64] = { 0 };
-static CHAR g_MSG[640] = { 0 };
-#define SCENTREALM_DEBUG
-
-#ifdef SCENTREALM_DEBUG
-#define DEBUG_LOG(fmt, ...) sprintf_s(g_MSG,640, fmt, __VA_ARGS__) ;GetHMS1(g_CunnentTime); fprintf(stdout, "[%s] %s",g_CunnentTime , g_MSG)
-// #define DEBUG_LOG(fmt, ...) _stprintf_s(g_MSG, TEXT(fmt), __VA_ARGS__) ;GetHMS(g_CunnentTime); _ftprintf(stdout, TEXT("[%s] %s"),g_CunnentTime , g_MSG)
-
-#else
-#define DEBUG_LOG(fmt, ...) 
-
-#endif
-
-
-
+USING_DEBUG_LOG_VARS
 
 BOOL GetIORArea(Mat Src, Mat &Output, Rect LogRect)
 {
@@ -104,7 +81,8 @@ VOID GetScreenCapture_LogArea(LPSTR addr)
 }
 
 // SURF 检测已知 物体
-int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_matches_size = 15, int rate = 5)
+// int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_matches_size = 15, int rate = 5)
+int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, size_t min_matches_size, int rate)
 {
 	resize(img_object, img_object, Size(), rate, rate);
 	resize(img_scene, img_scene, Size(), rate, rate);
@@ -185,7 +163,8 @@ int SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_match
 }
 
 // Mat 保存为 MD5 值名称
-INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder = "../data/Temp/", String Ext = ".jpg")
+// INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder = "../data/Temp/", String Ext = ".jpg")
+INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder, String Ext)
 {
 	CHAR name[250] = { 0 };
 	sprintf_s(name, "%s/%d%s", TempFolder.c_str(), GetMilliSecondOfDay(), Ext.c_str());
@@ -276,7 +255,7 @@ VOID DoThreshold(Mat Src, Mat &out, double thresh, double maxval)
 // Method: \n 0: SQDIFF \n 1: SQDIFF NORMED \n 2: TM CCORR \n 3: TM CCORR NORMED \n 4: TM COEFF \n 5: TM COEFF NORMED
 Point GetMatchedStartPointWithFName(
 	string img_name, string templ_name,
-	int match_method, BOOL use_threshold = TRUE, BOOL show_img = TRUE)
+	int match_method, BOOL use_threshold, BOOL show_img )
 {
 	Mat img = imread(img_name, IMREAD_COLOR);
 	Mat templ = imread(templ_name, IMREAD_COLOR);
@@ -325,7 +304,7 @@ Point GetMatchedStartPointWithFName(
 
 
 // Method: \n 0: SQDIFF \n 1: SQDIFF NORMED \n 2: TM CCORR \n 3: TM CCORR NORMED \n 4: TM COEFF \n 5: TM COEFF NORMED
-Point GetMatchedStartPoint(Mat img, Mat templ, int match_method, BOOL show_img = FALSE)
+Point GetMatchedStartPoint(Mat img, Mat templ, int match_method, BOOL show_img)
 {
 	Mat img_display;
 	Mat result;
@@ -389,7 +368,7 @@ VOID ScanXuyuanFolder_GetLogArea()
 
 	if (ListFilesWithExt_NDP("../data/Src/xuyuan", ResultVector, ".bmp"))
 	{
-		for (int i = 0; i < ResultVector.size(); i++)
+		for (size_t i = 0; i < ResultVector.size(); i++)
 		{
 			cout << ResultVector[i] << endl;
 
@@ -416,7 +395,7 @@ VOID MergeImagesVertically(string Folder, string Ext, string MergedFilename, BOO
 		INT Width = 0;
 		if (ResultVector.empty())
 			return;
-		for (int i = 0; i < ResultVector.size(); i++)
+		for (size_t i = 0; i < ResultVector.size(); i++)
 		{
 			Mat Src = imread(ResultVector[i], IMREAD_COLOR);
 			temp.push_back(Src);
@@ -425,7 +404,7 @@ VOID MergeImagesVertically(string Folder, string Ext, string MergedFilename, BOO
 		}
 		Mat Merge(Height, Width, CV_8UC3);
 		INT tmp = 0;
-		for (int i = 0; i < temp.size(); i++)
+		for (size_t i = 0; i < temp.size(); i++)
 		{
 			//    img4_color.copyTo(canvas(Range::all(), Range(0, img1.cols)));
 			Range rga(tmp, tmp + temp[i].rows);
@@ -583,7 +562,7 @@ VOID TestFolderImages()
 	vector<String> ResultVector;
 	if (ListFilesWithExt_NDP("../data/Split/ConsoleArea/Red", ResultVector, ".jpg"))
 	{
-		for (int i = 0; i < ResultVector.size(); i++)
+		for (size_t i = 0; i < ResultVector.size(); i++)
 		{
 			Mat srcMerge = imread(ResultVector[i], IMREAD_COLOR);
 			Mat red;
@@ -596,7 +575,7 @@ VOID TestFolderImages()
 	}
 	if (ListFilesWithExt_NDP("../data/Split/ConsoleArea/Green", ResultVector, ".jpg"))
 	{
-		for (int i = 0; i < ResultVector.size(); i++)
+		for (size_t i = 0; i < ResultVector.size(); i++)
 		{
 			Mat srcMerge = imread(ResultVector[i], IMREAD_COLOR);
 			Mat red;
@@ -609,7 +588,7 @@ VOID TestFolderImages()
 	}
 	if (ListFilesWithExt_NDP("../data/Split/ConsoleArea/Other", ResultVector, ".jpg"))
 	{
-		for (int i = 0; i < ResultVector.size(); i++)
+		for (size_t i = 0; i < ResultVector.size(); i++)
 		{
 			Mat srcMerge = imread(ResultVector[i], IMREAD_COLOR);
 			Mat red;
@@ -714,7 +693,7 @@ VOID TestDetect()
 
 int CreateProcessDM(TCHAR * sConLin)
 {
-	char cWindowsDirectory[MAX_PATH];
+//	char cWindowsDirectory[MAX_PATH];
 
 	//LPTSTR 与 wchar_t* 等价(Unicode环境下)  
 	LPTSTR cWinDir = new TCHAR[MAX_PATH];

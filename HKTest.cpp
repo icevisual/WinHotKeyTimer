@@ -174,8 +174,8 @@ void get_subimg_in_middle(Mat img,Mat &out,INT target_width, INT ys, INT he)
 {
 	INT w = img.size().width;
 	INT h = img.size().height;
-	INT sx = (w - target_width) / 2.0;
-	INT ex = (w + target_width) / 2.0;
+	INT sx = (INT)((w - target_width) / 2.0);
+	INT ex = (INT)((w + target_width) / 2.0);
 	out = img(Rect(sx,ys, target_width,he));
 }
 
@@ -210,7 +210,7 @@ INT CountROI_CanUseOrNot(Mat src)
 	get_subimg_in_middle(src, ImageROI, 360, 310, 40);
 	INT pC = CountPoint(ImageROI);
 	DOUBLE p = 1000000.0 * pC / (360.0 * 40);
-	INT iP = ceil(p);
+	INT iP = (INT)(ceil(p));
 
 	_tprintf(L"Count = %d, %.6f\n", pC, p);
 	// 0.116181

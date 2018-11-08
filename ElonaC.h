@@ -33,7 +33,7 @@ VOID RunWishing();
 
 INT RenameMatWithMD5(Mat Input, String StoreFolder, String TempFolder = "../data/Temp/", String Ext = ".jpg");
 // Using SURF to Dectect ping juan In Shop List Items Img
-INT SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, int min_matches_size = 15, int rate = 5);
+INT SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, size_t min_matches_size = 15, int rate = 5);
 
 VOID ShowIOR(Mat image, int x, int y, int w, int h);
 

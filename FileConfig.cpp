@@ -61,7 +61,7 @@ INT FileConfig::GetConfig_INT(string key_str, INT Default)
 
 string FileConfig::GetConfig_string(string key_str, string Default)
 {
-	printf("Get_From_G_Config (%s %d)\n", key_str.c_str(), Default);
+	printf("Get_From_G_Config (%s %s)\n", key_str.c_str(), Default.c_str());
 	map<string, string>::iterator finded;
 	finded = this->g_Config.find(key_str);
 	if (finded != this->g_Config.end())

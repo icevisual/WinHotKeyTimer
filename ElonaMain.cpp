@@ -253,7 +253,7 @@ VOID FindAndCloseWindow()
 {
 	LPCWSTR name = L"IOR-165";
 	HWND hd = FindWindow(NULL, name);
-	printf("hd = %d\n", hd);
+	// printf("hd = %d\n", hd);
 	PostMessage(hd, WM_CLOSE, NULL, NULL);
 }
 
