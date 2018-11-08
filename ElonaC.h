@@ -56,10 +56,11 @@ VOID SplitFontImg_AutoIOR(string filename);
 
 
 //////// PUBLIC
-// Screen Capture / Save File / Cut Image Using Rect
-VOID GetScreenCaptureWithIOR(LPSTR addr, Rect ior_rect);
-// Screen Capture / Save File / Cut Log Area
-VOID GetScreenCapture_LogArea(LPSTR addr);
+
+
+
+VOID ShowSURFDetectImage(Mat img_scene, Mat img_object, Point2f StartPoint);
+
 // show interest area 
 VOID ShowIOR(Mat image, int x, int y, int w, int h);
 // show interest areas with the same size orderly
@@ -72,13 +73,24 @@ INT SURFDetect(Mat img_object, Mat img_scene, Point2f &StartPoint, size_t min_ma
 VOID Gfname(string storage, string prefix, string suffix, string &output);
 // using minMaxLoc
 BOOL JudgeHasWhitePoint(Mat Src);
-// Mat(Rect(x,y,w,h)) / check size / return success or not
-BOOL GetIORArea(Mat Src, Mat &Output, Rect LogRect);
+
 // scan files / merge image vertically / specify merged filename / show merged file 
 VOID MergeImagesVertically(string Folder, string Ext, string MergedFilename, BOOL ShowImage = TRUE);
+// Screen Capture / Save File / Cut Image Using Rect
+VOID GetScreenCaptureWithIOR(LPSTR addr, Rect ior_rect);
+// Screen Capture / Save File / Cut Log Area
+VOID GetScreenCapture_LogArea(LPSTR addr);
+// Screen Capture / Save File / Cut Game Area
+VOID GetScreenCapture_GameArea(LPSTR addr);
+
+VOID GetScreenCapture_LeftStateArea(LPSTR addr);
+
+// Mat(Rect(x,y,w,h)) / check size / return success or not
+BOOL GetIORArea(Mat Src, Mat &Output, Rect LogRect);
 // input Mat / cut Log area
 BOOL GetLogArea(Mat Src, Mat &Output);
-
+// input Mat / cut Game area
+BOOL GetGameArea(Mat Src, Mat &Output);
 #endif // !ElonaCH
 
 

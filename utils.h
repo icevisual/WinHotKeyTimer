@@ -27,6 +27,8 @@ using std::vector;
 
 #define USING_DEBUG_LOG_VARS static CHAR DEBUG_LOG_CTime[64] = { 0 };static CHAR DEBUG_LOG_MSG[640] = { 0 };
 #define DEBUG_LOG(fmt, ...) sprintf_s(DEBUG_LOG_MSG,640, fmt, __VA_ARGS__) ;GetHMS_CHAR(DEBUG_LOG_CTime); fprintf(stdout, "[%s] %s",DEBUG_LOG_CTime , DEBUG_LOG_MSG)
+#define DEBUG_LOGN(fmt, ...) sprintf_s(DEBUG_LOG_MSG,640, fmt, __VA_ARGS__) ;GetHMS_CHAR(DEBUG_LOG_CTime); fprintf(stdout, "[%s] %s\n",DEBUG_LOG_CTime , DEBUG_LOG_MSG)
+
 // #define DEBUG_LOG(fmt, ...) _stprintf_s(g_MSG, TEXT(fmt), __VA_ARGS__) ;GetHMS(g_CunnentTime); _ftprintf(stdout, TEXT("[%s] %s"),g_CunnentTime , g_MSG)
 
 #endif // ! DEBUG_LOG

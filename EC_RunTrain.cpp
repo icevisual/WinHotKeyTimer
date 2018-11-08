@@ -98,6 +98,7 @@ VOID FireSoftKeyBoard_CN()
 	SimulateMouseClick(1716, 1059);
 	Sleep(500);
 }
+
 VOID HoldUp_ForTime()
 {
 	DEBUG_LOG("Hold Up Key For 20 s\n");
@@ -113,6 +114,7 @@ VOID SmOpenAndClick()
 	{
 		FireSoftKeyBoard_CN();
 		SKB_Fired = true;
+		// Detect Soft Keyboard
 	}
 	HoldUp_ForTime();
 }
@@ -123,19 +125,79 @@ VOID CutLeftStateBar()
 	string fname;
 	Gfname("../data/Temp/LSB", "SCRE-", ".bmp", fname);
 	strcpy_s(name, fname.c_str());
-	GetScreenCaptureWithIOR(name, Rect(0, 400, 70, 125));
+	GetScreenCapture_LeftStateArea(name);
+	// GetScreenCapture_GameArea(name);
+}
 
-	//GetScreenCaptureWithIOR(name, Rect(0, 0, 805, 628));
+// ÅÐ¶Ï¿Õ¸¹
+BOOL DetectKongfu(Mat img_scene)
+{
+	static Mat img_object = imread("../data/Src/LSB/kongfu.bmp", IMREAD_GRAYSCALE);
+	Point2f StartPoint;
+	if (SURFDetect(img_object, img_scene, StartPoint,30) > 0)
+	{
+		// ShowSURFDetectImage(img_scene, img_object, StartPoint);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+// ÅÐ¶Ï¿ÉË¯Ãß
+BOOL DetectKeshuimian(Mat img_scene)
+{
+	static Mat img_object = imread("../data/Src/LSB/keshuimian.bmp", IMREAD_GRAYSCALE);
+	Point2f StartPoint;
+	if (SURFDetect(img_object, img_scene, StartPoint,38) > 0)
+	{
+		// ShowSURFDetectImage(img_scene, img_object, StartPoint);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+static VOID TestDetect();
+
+
+VOID SimulateEat()
+{
+	// Detect Empty
+	DEBUG_LOG("SimulateEat\n");
+	ConvertChar2KeyWordAndSimulate("e");
+	Sleep(100);
+	ConvertChar2KeyWordAndSimulate("a");
+	Sleep(100);
 }
 
 VOID RunTrain()
 {
+	SimulateEat();
+	return;
+	CHAR name[250] = { 0 };
+	string fname;
+
 STARTR:
 	SmOpenAndClick();
 	DEBUG_LOG("You Can Stop In 4 Seconds\n");
 	Sleep(4000);
-	goto STARTR;
 
+	Gfname("../data/Temp/LSB", "LSB-", ".bmp", fname);
+	strcpy_s(name, fname.c_str());
+	GetScreenCapture_LeftStateArea(name);
+	Mat ste = imread(name,IMREAD_COLOR);
+
+	if (DetectKongfu(ste) == TRUE )
+	{
+		DEBUG_LOGN("Hungry Detected");
+		SimulateEat();
+	}
+
+	if (DetectKeshuimian(ste) == TRUE)
+	{
+
+	}
+
+	goto STARTR;
 	return;
 	LPPOINT cPoint = new POINT;
 	::GetCursorPos(cPoint);
@@ -143,21 +205,57 @@ STARTR:
 	//	::SetCursorPos(cPoint);
 	//	mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
 	DEBUG_LOG("cPoint = (%d, %d)\n", cPoint->x, cPoint->y);
-
-
-
 	//	SimulateClickUp();
-
 
 	Sleep(3000);
 	//Mat Src = imread("../data/Src/SKB/kb2.bmp");
 	//Rect fr(908,887,66,60);
-
-
-
 	//imshow("Src1", Src(fr));
 	//imshow("Src2", Src(Rect(836, 953, 66, 60)));
-
 	//waitKey(0);
+}
+
+
+
+static VOID TestDetect()
+{
+	// zhenghe
+	Mat ste1 = imread("../data/Src/LSB/STE/SCRE-43500659.bmp", IMREAD_COLOR);
+	// zhonghe kongfu
+	Mat ste2 = imread("../data/Src/LSB/STE/SCRE-43578612.bmp", IMREAD_COLOR);
+	// zhonghe red kongfu
+	Mat ste3 = imread("../data/Src/LSB/STE/SCRE-43604860.bmp", IMREAD_COLOR);
+	// zhonghe keshuimian manfu
+	Mat ste4 = imread("../data/Src/LSB/STE/SCRE-45879417.bmp", IMREAD_COLOR);
+	// zhonghe keshuimian kongfu
+	Mat ste5 = imread("../data/Src/LSB/STE/SCRE-46028138.bmp", IMREAD_COLOR);
+	// SCRE-43578612 SCRE-43604860 SCRE-45879417 SCRE-46028138
+
+	if (DetectKongfu(ste1) == TRUE || DetectKeshuimian(ste1) == TRUE)
+	{
+		DEBUG_LOG("ERROR 1");
+	}
+
+	if (DetectKongfu(ste2) != TRUE || DetectKeshuimian(ste2) == TRUE)
+	{
+		DEBUG_LOG("ERROR 2");
+	}
+
+	if (DetectKongfu(ste3) != TRUE || DetectKeshuimian(ste3) == TRUE)
+	{
+		DEBUG_LOG("ERROR 3");
+	}
+
+	if (DetectKongfu(ste4) == TRUE || DetectKeshuimian(ste4) != TRUE)
+	{
+		DEBUG_LOG("ERROR 4");
+	}
+
+	if (DetectKongfu(ste5) != TRUE || DetectKeshuimian(ste5) != TRUE)
+	{
+		DEBUG_LOG("ERROR 5");
+	}
 
 }
+
+

@@ -57,10 +57,26 @@ BOOL GetLogArea(Mat Src, Mat &Output)
 	return GetIORArea(Src, Output, LogRect);
 }
 
+BOOL GetGameArea(Mat Src, Mat &Output)
+{
+	Rect LogRect(0, 0, 805, 628);
+	return GetIORArea(Src, Output, LogRect);
+}
+
+
+VOID GetScreenCapture_GameArea(LPSTR addr)
+{
+	GetScreenCaptureWithIOR(addr, Rect(0, 0, 805, 628));
+}
 
 VOID GetScreenCapture_LogArea(LPSTR addr)
 {
 	GetScreenCaptureWithIOR(addr, Rect(127, 540, 676, 68));
+}
+
+VOID GetScreenCapture_LeftStateArea(LPSTR addr)
+{
+	GetScreenCaptureWithIOR(addr, Rect(5, 400, 70, 120));
 }
 
 VOID GetScreenCaptureWithIOR(LPSTR addr, Rect ior_rect)
@@ -363,3 +379,16 @@ VOID ShowIOR_Items(Mat image, int x, int y, int w, int h)
 }
 
 
+VOID ShowSURFDetectImage(Mat img_scene, Mat img_object, Point2f StartPoint)
+{
+	rectangle(
+		img_scene,
+		Point2f(StartPoint.x, StartPoint.y),
+		Point2f(StartPoint.x + img_object.cols, StartPoint.y + img_object.rows),
+		Scalar(0, 255, 255),
+		1,
+		LINE_8
+	);
+	imshow("img_scene", img_scene);
+	waitKey(3000);
+}
