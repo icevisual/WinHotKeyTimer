@@ -70,7 +70,9 @@ VOID GetScreenCaptureWithIOR(LPSTR addr, Rect ior_rect);
 
 VOID GetScreenCapture_LogArea(LPSTR addr);
 
+VOID RunTrain();
 
+VOID CutLeftStateBar();
 
 #endif // !ElonaCH
 

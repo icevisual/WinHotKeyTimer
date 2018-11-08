@@ -32,8 +32,8 @@ static VOID ShowIOR_ItemsWithInput(Mat Src)
 	{
 		if (x < 0 || y < 0 || w < 0 || h < 0)
 			break;
-
-
+		if (w == 0 || h == 0)
+			break;
 		ShowIOR(Src, x, y, w, h);
 
 		//  ShowIOR_Items(Src, x, y, w, h);
@@ -317,22 +317,23 @@ INT main(int argc, TCHAR * argv[]) {
 	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_OEM_MINUS);
 	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_OEM_PLUS);
 	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
-	//  LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
-	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, 0x33);
-	LocalRegisterHotKey(hWnd, m_HotKeyId6, MOD_NOREPEAT, VK_NUMPAD6);
+    LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
+	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, VK_OEM_4);
+	LocalRegisterHotKey(hWnd, m_HotKeyId6, MOD_NOREPEAT, VK_OEM_6);
 	LocalRegisterHotKey(hWnd, m_HotKeyId7, MOD_NOREPEAT, VK_NUMPAD7);
-	LocalRegisterHotKey(hWnd, m_HotKeyId8, MOD_NOREPEAT, VK_NUMPAD8);
+	LocalRegisterHotKey(hWnd, m_HotKeyId8, MOD_NOREPEAT, VK_OEM_7);
 	LocalRegisterHotKey(hWnd, m_HotKeyId9, MOD_NOREPEAT, VK_NUMPAD9);
 
-	_tprintf(L"Press Key `1` To Start 1.bat \n");
-	_tprintf(L"Press Key `2` To Start 2.bat \n");
-	_tprintf(L"Press Key `3` To Exit\n");
-	//_tprintf(L"Press Key `4` To Ka Bug\n");
+	_tprintf(L"Press Key `-` To Start Simulate F \n");
+	_tprintf(L"Press Key `=` To Start RunWishing \n");
+	_tprintf(L"Press Key `NUMPAD3` To Exit\n");
+	_tprintf(L"Press Key `NUMPAD4` To Start ShopItems Thread\n");
+	_tprintf(L"Press Key `[` To Start RunTrain \n");
 	//_tprintf(L"Press Key `5` To Cycle Ka Bug 50\n");
-	//_tprintf(L"Press Key `6` To Exit\n");
-	//_tprintf(L"Press Key `7` To Scan ScreenCapture\n");
-	//_tprintf(L"Press Key `8` To Stop Cycle Ka Bug\n");
-	//_tprintf(L"Press Key `9` To Ka Bug Key Frame\n");
+	_tprintf(L"Press Key `]` To Split Log Area using threshold & matchTempkate \n");
+	_tprintf(L"Press Key `NUMPAD7` To Split Image By Rect\n");
+	_tprintf(L"Press Key `'` To Cut State Bar\n");
+	_tprintf(L"Press Key `NUMPAD9` To destroyAllWindows\n");
 
 	//  Mat Empty(6,19, CV_8UC1,Scalar::all(0));
 
@@ -348,19 +349,6 @@ INT main(int argc, TCHAR * argv[]) {
 					ConvertChar2KeyWordAndSimulate("f");
 					Sleep(40);
 				}
-
-
-				//    //  Sleep(100);
-				//      ConvertChar2KeyWordAndSimulate("S");
-				//      Sleep(100);
-				//      ConvertChar2KeyWordAndSimulate("a");
-				//      Sleep(100);
-				//      WORD  Keys[] = { 
-				////        VK_ESCAPE ,
-				//  //      VK_LEFT,
-				//        VK_NUMPAD4
-				//      };
-				//      SimulateKeyArrayInput(Keys, 1);
 			}
 			else if (m_HotKeyId2 == msg.wParam) {
 
@@ -387,7 +375,7 @@ INT main(int argc, TCHAR * argv[]) {
 				printf("Mission 4 Over\n");
 			}
 			else if (m_HotKeyId5 == msg.wParam) {
-
+				RunTrain();
 				// Question0001();
 
 				//CHAR name[50] = { 0 };
@@ -404,35 +392,14 @@ INT main(int argc, TCHAR * argv[]) {
 				SplitFontImgTest_AutoIOR("../data/Src/xuyuan/benzhoule.bmp");
 			}
 			else if (m_HotKeyId7 == msg.wParam) {
-				Mat Src = imread("../data/Src/Enter/select.bmp", IMREAD_COLOR);
+				Mat Src = imread("../data/Src/xuyuan/mabile.bmp", IMREAD_COLOR);
 				//Main 100 160 200 60
 				//Select 180 160 250 60
 				ShowIOR_ItemsWithInput(Src);
-
-
-				//Mat imag, result;
-				//imag = imread("../data/ior1.bmp", 0); //将读入的彩色图像直接以灰度图像读入
-				//namedWindow("原图", 1);
-				//imshow("原图", imag);
-				//result = imag.clone();
-				////进行二值化处理，选择30，200.0为阈值
-				//threshold(imag, result, 50.0, 255, 0);
-				//namedWindow("二值化图像");
-				//imshow("二值化图像", result);
-				//imwrite("../data/threshold.jpg", result);
-
-				//Mat img = imread("../data/threshold.jpg", IMREAD_COLOR);
-				//Mat templ = imread("../data/empty.jpg", IMREAD_COLOR);
-				//Point MinPoint = GetMatchedStartPoint(img, templ, 0);
-				//printf("matchLoc = (%d,%d)\n", MinPoint.x, MinPoint.y);
-				//waitKey(0);
-				/*LPSTR addr = "ScreenCapture.png";
-				ScreenCapture(addr, 32, NULL);
-				Mat src = imread("ScreenCapture.png");
-				*/
 			}
 			else if (m_HotKeyId8 == msg.wParam) {
-				G_StopCycle = TRUE;
+				printf("CutLeftStateBar\n");
+				CutLeftStateBar();
 			}
 			else if (m_HotKeyId9 == msg.wParam) {
 				printf("Mission m_HotKeyId9 Start\n");
