@@ -21,6 +21,9 @@ int MakeDIR(string dir)
 	return 0;
 }
 
+
+
+
 //LPBYTE lpBuf = (LPBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwNeedSize);
 //if (lpBuf)
 //{

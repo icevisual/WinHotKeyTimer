@@ -37,6 +37,7 @@ using std::vector;
 #endif
 
 
+
 int MakeDIR(string dir);
 
 INT GetMilliSecondOfDay();
