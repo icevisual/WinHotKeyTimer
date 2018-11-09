@@ -125,8 +125,8 @@ VOID CutLeftStateBar()
 	string fname;
 	Gfname("../data/Temp/LSB", "SCRE-", ".bmp", fname);
 	strcpy_s(name, fname.c_str());
-	GetScreenCapture_LeftStateArea(name);
-	// GetScreenCapture_GameArea(name);
+	// GetScreenCapture_LeftStateArea(name);
+	GetScreenCapture_GameArea(name);
 }
 
 // ÅÐ¶Ï¿Õ¸¹
@@ -166,11 +166,52 @@ VOID SimulateEat()
 	ConvertChar2KeyWordAndSimulate("e");
 	Sleep(100);
 	ConvertChar2KeyWordAndSimulate("a");
-	Sleep(100);
+	Sleep(200);
 }
+
+
+void SMKey(WORD Key ,INT Interval = 160)
+{
+	INPUT    Input = { 0 };
+	// left down 
+	Input.ki.wVk = Key;
+	Input.type = INPUT_KEYBOARD;
+	::SendInput(1, &Input, sizeof(INPUT));
+
+	Sleep(Interval);
+	// left up
+	::ZeroMemory(&Input, sizeof(INPUT));
+	Input.ki.wVk = Key;
+	Input.type = INPUT_KEYBOARD;
+	Input.mi.dwFlags = KEYEVENTF_KEYUP;
+	::SendInput(1, &Input, sizeof(INPUT));
+}
+
+
+VOID SimulateSleep()
+{
+	// Detect Empty
+	DEBUG_LOG("SimulateSleep\n");
+	ConvertChar2KeyWordAndSimulate("t");
+	Sleep(100);
+	ConvertChar2KeyWordAndSimulate("a");
+	Sleep(200);
+	WORD Keys[] = {VK_RETURN};
+	SimulateKeyArrayInput(Keys, 1);
+
+	//WORD Keys[] = { VK_RETURN };
+	//SimulateKeyArrayInput(Keys, 1);
+}
+
+
+
 
 VOID RunTrain()
 {
+	//SMKey(VK_RETURN);
+	//return;
+	CutLeftStateBar();
+	return;
 	SimulateEat();
 	return;
 	CHAR name[250] = { 0 };
@@ -192,10 +233,10 @@ STARTR:
 		SimulateEat();
 	}
 
-	if (DetectKeshuimian(ste) == TRUE)
-	{
+	//if (DetectKeshuimian(ste) == TRUE)
+	//{
 
-	}
+	//}
 
 	goto STARTR;
 	return;
