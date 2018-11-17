@@ -19,61 +19,6 @@ using namespace cv::xfeatures2d;
 
 USING_DEBUG_LOG_VARS
 
-void LeftClick()
-{
-	INPUT    Input = { 0 };
-	// left down 
-	Input.type = INPUT_MOUSE;
-	Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-	::SendInput(1, &Input, sizeof(INPUT));
-
-	Sleep(160);
-	// left up
-	::ZeroMemory(&Input, sizeof(INPUT));
-	Input.type = INPUT_MOUSE;
-	Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-	::SendInput(1, &Input, sizeof(INPUT));
-}
-
-void LeftClick_Hold()
-{
-	INPUT    Input = { 0 };
-	// left down 
-	Input.type = INPUT_MOUSE;
-	Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-	::SendInput(1, &Input, sizeof(INPUT));
-}
-void LeftClick_Release()
-{
-	INPUT    Input = { 0 };
-	::ZeroMemory(&Input, sizeof(INPUT));
-	Input.type = INPUT_MOUSE;
-	Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-	::SendInput(1, &Input, sizeof(INPUT));
-}
-
-VOID SimulateMouseClick(int x, int y)
-{
-	::SetCursorPos(x, y);
-
-	LeftClick();
-	//	mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-	//mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0);
-	//mouse_event(MOUSEEVENTF_XDOWN, 0, 0, 0, 0);
-	//mouse_event(MOUSEEVENTF_XUP, 0, 0, 0, 0);
-}
-
-VOID SimulateMouseClick_Hold(int x, int y)
-{
-	::SetCursorPos(x, y);
-
-	LeftClick_Hold();
-	//	mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-	//mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0);
-	//mouse_event(MOUSEEVENTF_XDOWN, 0, 0, 0, 0);
-	//mouse_event(MOUSEEVENTF_XUP, 0, 0, 0, 0);
-}
-
 
 VOID SimulateClickUp()
 {

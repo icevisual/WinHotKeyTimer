@@ -91,3 +91,13 @@ INT ListFilesWithExt_NDP(const string& folder_path, vector<string> &ResultVector
 int DOMatch(string img_name, string templ_name);
 
 string FileDigest(const string &file);
+
+
+
+
+VOID LeftClick();
+VOID LeftClick_Hold();
+VOID LeftClick_Release();
+
+VOID SimulateMouseClick(int x, int y);
+VOID SimulateMouseClick_Hold(int x, int y);
