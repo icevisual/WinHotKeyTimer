@@ -33,12 +33,7 @@ BOOL GetSelectRiskerArea(Mat Src, Mat &Output)
 }
 // 165 680 847 85
 
-BOOL GetLogArea(Mat Src, Mat &Output)
-{
-	// 165 680 847 85
-	Rect LogRect(165,680,847,85);
-	return GetIORArea(Src, Output, LogRect);
-}
+
 
 // 使用 inRange 筛选 图片中的 EC 红色部分
 VOID filter_ec_red(Mat src, Mat &output)
@@ -169,6 +164,7 @@ VOID SimulateDrink()
 	Sleep(100);
 }
 
+
 VOID SimulateQuiteGame()
 {
 	GetScreenCapture_GameArea("../data/Temp/Before-SimulateQuiteGame.bmp");
@@ -192,6 +188,111 @@ VOID SimulateEnterGame()
 	ConvertChar2KeyWordAndSimulate("a");
 	Sleep(1500);
 }
+
+VOID SimulateRead(string itemIndex)
+{
+	DEBUG_LOG("SimulateRead\n");
+	ConvertChar2KeyWordAndSimulate("r");
+	Sleep(200);
+	ConvertChar2KeyWordAndSimulate(itemIndex);
+	Sleep(1500);
+}
+
+
+VOID RunRead()
+{
+	Mat DetectArea;
+	Mat Screen;
+	BOOL DetectRet;
+	CHAR name[250] = { 0 };
+	CHAR storage[100] = { 0 };
+	string fname;
+
+	int Score = 0;
+RESTERT:
+
+	int index = 0;
+	StartEC();
+
+	Sleep(1500);
+	int BatchNumber = GetMilliSecondOfDay();
+	sprintf_s(storage, "../data/Temp/%d", BatchNumber);
+
+
+	MakeDIR(storage);
+
+	do {
+		// 1500
+		Sleep(300);
+		Gfname(storage, "SCRE-", ".bmp", fname);
+		strcpy_s(name, fname.c_str());
+
+
+		GetScreenCapture_GameArea(name);
+		Screen = imread(name, IMREAD_COLOR);
+
+		GetRiskerGuideArea(Screen, DetectArea);
+		
+		DetectRet = DetectRiskerGuidePoint(DetectArea);
+		DEBUG_LOG("RiskerGuide = %d\n", DetectRet);
+	} while (DetectRet == FALSE);
+
+	SimulateEnterGame();
+
+	do {
+		// 1500
+		Sleep(500);
+		Gfname(storage, "SCRE-", ".bmp", fname);
+		strcpy_s(name, fname.c_str());
+		GetScreenCapture_GameArea(name);
+		Screen = imread(name, IMREAD_COLOR);
+
+		GetSelectRiskerArea(Screen, DetectArea);
+		DetectRet = DetectRiskerGuidePoint(DetectArea);
+		DEBUG_LOG("SelectRisker = %d\n", DetectRet);
+	} while (DetectRet == TRUE);
+
+	DEBUG_LOG("Enter Game\n");
+
+	do {
+
+		SimulateRead("e");
+		Gfname(storage, "SCRE-", ".bmp", fname);
+		strcpy_s(name, fname.c_str());
+		GetScreenCapture_GameArea(name);
+		Mat  Screen1 = imread(name, IMREAD_COLOR);
+		Mat DetectArea1;
+		GetLogArea(Screen1, DetectArea1);
+		//namedWindow("fffffffff");
+		//namedWindow("eeeeee");
+		//imshow("fffffffff", Screen1);
+
+		//imshow("eeeeee", DetectArea1);
+
+		//waitKey(0);
+		Mat temp_gray;
+		cvtColor(DetectArea1, temp_gray, COLOR_BGR2GRAY);
+		imwrite("../data/Temp/DetectArea2.bmp", temp_gray);
+		index++;
+		break;
+	} while (true);
+
+	DEBUG_LOG("Simulate Stopped\n");
+	// 打开 EC 程序
+	// 运行程序 [启动中,小框][全黑，全框][冒险的路标][选择冒险者]
+	// 判断进入首页
+	// 模拟 a
+	// 判断进入资料选择页面
+	// 模拟 a
+	// 判断 不在资料选择页面
+	// 截屏 获取输出栏
+	// 判断 红色：重启，绿色：保存重启
+	// 判断 干涸：重启，冲出来：重启
+	// 判断 许愿
+
+}
+
+
 
 VOID RunWishing()
 {

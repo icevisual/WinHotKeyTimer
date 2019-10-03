@@ -290,7 +290,8 @@ int TEST_SURF()
 }
 
 INT main(int argc, TCHAR * argv[]) {
-
+	// tesseract ../data/Temp/DetectArea2.bmp result -l chi_sim
+	//system("tesseract ../data/Temp/DetectArea2.bmp result -l chi_sim");
 
 	// TEST_SURF();
 
@@ -325,7 +326,7 @@ INT main(int argc, TCHAR * argv[]) {
 	LocalRegisterHotKey(hWnd, m_HotKeyId9, MOD_NOREPEAT, VK_NUMPAD9);
 
 	_tprintf(L"Press Key `-` To Start Simulate F \n");
-	_tprintf(L"Press Key `=` To Start RunWishing \n");
+	_tprintf(L"Press Key `=` To Start RunRead \n");
 	_tprintf(L"Press Key `NUMPAD3` To Exit\n");
 	_tprintf(L"Press Key `NUMPAD4` To Start ShopItems Thread\n");
 	_tprintf(L"Press Key `[` To Start RunTrain \n");
@@ -352,7 +353,7 @@ INT main(int argc, TCHAR * argv[]) {
 			}
 			else if (m_HotKeyId2 == msg.wParam) {
 
-				RunWishing();
+				RunRead();
 			}
 			else if (m_HotKeyId3 == msg.wParam) {
 				// Exit

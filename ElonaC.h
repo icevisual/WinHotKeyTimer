@@ -24,7 +24,7 @@ using namespace cv::xfeatures2d;
 
 
 VOID RunWishing();
-
+VOID RunRead();
 VOID RunTrain();
 
 VOID CutLeftStateBar();

@@ -51,11 +51,20 @@ BOOL GetIORArea(Mat Src, Mat &Output, Rect LogRect)
 	return 1;
 }
 
+//BOOL GetLogArea(Mat Src, Mat &Output)
+//{
+//	Rect LogRect(127, 540, 676, 68);
+//	return GetIORArea(Src, Output, LogRect);
+//}
 BOOL GetLogArea(Mat Src, Mat &Output)
 {
-	Rect LogRect(127, 540, 676, 68);
+	// 0, 0, 1010, 800
+	// 1012 
+	// 165 680 847 85
+	Rect LogRect(165, 680, 845, 85);
 	return GetIORArea(Src, Output, LogRect);
 }
+
 
 BOOL GetGameArea(Mat Src, Mat &Output)
 {
