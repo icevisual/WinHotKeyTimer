@@ -21,13 +21,22 @@ USING_DEBUG_LOG_VARS
 
 BOOL GetRiskerGuideArea(Mat Src, Mat &Output)
 {
-	Rect LogRect(100, 160, 200, 60);
+	Rect LogRect(152, 222, 180, 36);
 	return GetIORArea(Src, Output, LogRect);
 }
 
 BOOL GetSelectRiskerArea(Mat Src, Mat &Output)
 {
-	Rect LogRect(180, 160, 250, 60);
+	// 275 230 250 40
+	Rect LogRect(275, 230, 250, 40);
+	return GetIORArea(Src, Output, LogRect);
+}
+// 165 680 847 85
+
+BOOL GetLogArea(Mat Src, Mat &Output)
+{
+	// 165 680 847 85
+	Rect LogRect(165,680,847,85);
 	return GetIORArea(Src, Output, LogRect);
 }
 
@@ -217,6 +226,7 @@ RESTERT:
 		Screen = imread(name, IMREAD_COLOR);
 
 		GetRiskerGuideArea(Screen, DetectArea);
+		imwrite("../data/Temp/DetectArea.bmp",DetectArea);
 		DetectRet = DetectRiskerGuidePoint(DetectArea);
 		DEBUG_LOG("RiskerGuide = %d\n", DetectRet);
 	} while (DetectRet == FALSE);

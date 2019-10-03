@@ -66,7 +66,8 @@ BOOL GetGameArea(Mat Src, Mat &Output)
 
 VOID GetScreenCapture_GameArea(LPSTR addr)
 {
-	GetScreenCaptureWithIOR(addr, Rect(0, 0, 805, 628));
+	//GetScreenCaptureWithIOR(addr, Rect(0, 0, 805, 628));
+	GetScreenCaptureWithIOR(addr, Rect(0, 0, 1010, 800));
 }
 
 VOID GetScreenCapture_LogArea(LPSTR addr)
@@ -339,6 +340,7 @@ VOID ShowIOR(Mat image, int x, int y, int w, int h)
 
 	Mat imageROI = image(Rect(x, y, w, h));
 	namedWindow("src");
+	moveWindow("src",0,0);
 	imshow("src", imageROI);
 	// imwrite("../data/ior1.bmp", imageROI);
 	waitKey(30);

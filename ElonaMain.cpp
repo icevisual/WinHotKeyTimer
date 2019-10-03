@@ -314,13 +314,13 @@ INT main(int argc, TCHAR * argv[]) {
 	ATOM m_HotKeyId8 = GlobalAddAtom(_T("WinHotKeySRCtl-StopCycle")) - 0xc000;
 	ATOM m_HotKeyId9 = GlobalAddAtom(_T("WinHotKeySRCtl-Test")) - 0xc000;
 	_tprintf(L"Register HotKeys ... VK_NUMPAD1 ~ VK_NUMPAD9\n");
-	LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_OEM_MINUS);
+	//LocalRegisterHotKey(hWnd, m_HotKeyId1, MOD_NOREPEAT, VK_OEM_MINUS);
 	LocalRegisterHotKey(hWnd, m_HotKeyId2, MOD_NOREPEAT, VK_OEM_PLUS);
 	LocalRegisterHotKey(hWnd, m_HotKeyId3, MOD_NOREPEAT, VK_NUMPAD3);
     LocalRegisterHotKey(hWnd, m_HotKeyId4, MOD_NOREPEAT, VK_NUMPAD4);
 	LocalRegisterHotKey(hWnd, m_HotKeyId5, MOD_NOREPEAT, VK_OEM_4);
 	LocalRegisterHotKey(hWnd, m_HotKeyId6, MOD_NOREPEAT, VK_OEM_6);
-	LocalRegisterHotKey(hWnd, m_HotKeyId7, MOD_NOREPEAT, VK_NUMPAD7);
+	LocalRegisterHotKey(hWnd, m_HotKeyId7, MOD_NOREPEAT, VK_OEM_MINUS);
 	LocalRegisterHotKey(hWnd, m_HotKeyId8, MOD_NOREPEAT, VK_OEM_7);
 	LocalRegisterHotKey(hWnd, m_HotKeyId9, MOD_NOREPEAT, VK_NUMPAD9);
 
@@ -392,7 +392,7 @@ INT main(int argc, TCHAR * argv[]) {
 				SplitFontImgTest_AutoIOR("../data/Src/xuyuan/benzhoule.bmp");
 			}
 			else if (m_HotKeyId7 == msg.wParam) {
-				Mat Src = imread("../data/Src/xuyuan/mabile.bmp", IMREAD_COLOR);
+				Mat Src = imread("../data/Src/xuyuan/sc.bmp", IMREAD_COLOR);
 				//Main 100 160 200 60
 				//Select 180 160 250 60
 				ShowIOR_ItemsWithInput(Src);
