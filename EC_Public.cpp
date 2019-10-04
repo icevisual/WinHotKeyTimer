@@ -14,11 +14,62 @@
 #include "opencv2/calib3d.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/xfeatures2d.hpp"
+#include <fstream>
 
+#include <codecvt>
 #include <io.h>
 
 USING_DEBUG_LOG_VARS
 
+
+bool file_get_content_utf8(wstring file, wstring &output)
+{
+	ifstream ifs(file);
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+	output = L"";
+	while (!ifs.eof())
+	{
+		string line;
+		getline(ifs, line);
+		wstring wb = conv.from_bytes(line);
+		wcout.imbue(locale("chs")); //更改区域设置 只为控制台输出显示
+		output += wb;
+	}
+	ifs.close();
+	return false;
+}
+
+bool ws_contains_utf8(wstring source, wstring tar)
+{
+	size_t t = source.find(tar);
+	DEBUG_LOG("T = %d\n",t);
+	if (t >= 0 && t < 10000)
+		return true;
+	return false;
+}
+
+bool file_contains_utf8(wstring file, wstring tar)
+{
+	ifstream ifs(file);
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+	while (!ifs.eof())
+	{
+		string line;
+		getline(ifs, line);
+		wstring wb = conv.from_bytes(line);
+		size_t t = wb.find(tar);
+		wcout.imbue(locale("chs")); //更改区域设置 只为控制台输出显示
+		//wcout << wb << endl;
+		//wcout << t << endl;
+		if (t >= 0 && t < 10000)
+		{
+			ifs.close();
+			return true;
+		}
+	}
+	ifs.close();
+	return false;
+}
 // 判断图片中是否包含 白色 点
 BOOL JudgeHasWhitePoint(Mat Src)
 {
@@ -273,9 +324,7 @@ int inRange_DM()
 	createTrackbar("Low V", window_detection_name, &low_V, max_value, on_low_V_thresh_trackbar);
 	createTrackbar("High V", window_detection_name, &high_V, max_value, on_high_V_thresh_trackbar);
 
-	Mat srcMerge = imread("../data/Split/ConsoleArea/Merge1.bmp", IMREAD_COLOR);
-	// ../data/Temp/40661682/LOGAREA-40671469.bmp
-	//Mat srcMerge = imread("../data/Temp/40661682/LOGAREA-40671469.bmp", IMREAD_COLOR);
+	Mat srcMerge = imread("../data/Temp/SCRE-69337538.bmp", IMREAD_COLOR);
 
 	Mat frame;
 	frame = srcMerge;

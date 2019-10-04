@@ -254,7 +254,7 @@ VOID MilliSecond2HMSF(INT ms, TCHAR * msString) {
 }
 
 
-DWORD char2Wchar(char * sBuf, int sBufSize, WCHAR * output)
+DWORD char2Wchar(const char * sBuf, int sBufSize, WCHAR * output)
 {
 	DWORD dBufSize = MultiByteToWideChar(CP_ACP, 0, sBuf, sBufSize, NULL, 0);
 	WCHAR * dBuf = new WCHAR[dBufSize + 1];

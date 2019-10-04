@@ -56,9 +56,10 @@ VOID SplitFontImg_AutoIOR(string filename);
 
 
 //////// PUBLIC
-
-
-
+int inRange_DM();
+bool file_contains_utf8(wstring file, wstring tar);
+bool file_get_content_utf8(wstring file, wstring &output);
+bool ws_contains_utf8(wstring source, wstring tar);
 VOID ShowSURFDetectImage(Mat img_scene, Mat img_object, Point2f StartPoint);
 
 // show interest area 

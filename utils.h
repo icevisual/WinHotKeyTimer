@@ -68,7 +68,7 @@ UINT64 GetTimestamp();
 // 将毫秒转为 HMSF 格式的时间字符串
 VOID MilliSecond2HMSF(INT ms, TCHAR * msString);
 
-DWORD char2Wchar(char * sBuf, int sBufSize, WCHAR * output);
+DWORD char2Wchar(const char * sBuf, int sBufSize, WCHAR * output);
 
 VOID ShowLastErrorMsg(LPTSTR lpszFunction);
 

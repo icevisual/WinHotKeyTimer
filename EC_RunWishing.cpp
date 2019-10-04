@@ -195,8 +195,11 @@ VOID SimulateRead(string itemIndex)
 	ConvertChar2KeyWordAndSimulate("r");
 	Sleep(200);
 	ConvertChar2KeyWordAndSimulate(itemIndex);
-	Sleep(1500);
+	Sleep(200);
 }
+
+
+#include <fstream>
 
 
 VOID RunRead()
@@ -207,10 +210,12 @@ VOID RunRead()
 	CHAR name[250] = { 0 };
 	CHAR storage[100] = { 0 };
 	string fname;
-
+	wstring KeyWords[] = {L"陨石",L"丰收",L"许愿" ,L"许" };
 	int Score = 0;
+	int MaxRetryTime = 10;
 RESTERT:
-
+	if (MaxRetryTime < 0)
+		return;
 	int index = 0;
 	StartEC();
 
@@ -253,9 +258,11 @@ RESTERT:
 	} while (DetectRet == TRUE);
 
 	DEBUG_LOG("Enter Game\n");
-
-	do {
-
+	int max_read = 4;
+	wstring result_text;
+	bool get_magic = false;
+	for (int i = 0; i < max_read; i++)
+	{
 		SimulateRead("e");
 		Gfname(storage, "SCRE-", ".bmp", fname);
 		strcpy_s(name, fname.c_str());
@@ -263,33 +270,40 @@ RESTERT:
 		Mat  Screen1 = imread(name, IMREAD_COLOR);
 		Mat DetectArea1;
 		GetLogArea(Screen1, DetectArea1);
-		//namedWindow("fffffffff");
-		//namedWindow("eeeeee");
-		//imshow("fffffffff", Screen1);
+		imwrite("../data/Temp/DetectArea2.bmp",DetectArea1);
+		system("tesseract ../data/Temp/DetectArea2.bmp ../data/Temp/result -l chi_sim");
+		file_get_content_utf8(L"../data/Temp/result.txt", result_text);
+		wcout.imbue(locale("chs"));
+		wcout << endl << result_text << endl << endl;;
+		for (int k = 0; k < 3; k++)
+		{
+			get_magic = ws_contains_utf8(result_text, KeyWords[k]);
+			if (get_magic)
+			{
+				break;
+			}
+			else
+			{
+				DEBUG_LOG("Not Match\n");
+			}
+		}
 
-		//imshow("eeeeee", DetectArea1);
-
-		//waitKey(0);
-		Mat temp_gray;
-		cvtColor(DetectArea1, temp_gray, COLOR_BGR2GRAY);
-		imwrite("../data/Temp/DetectArea2.bmp", temp_gray);
-		index++;
-		break;
-	} while (true);
-
-	DEBUG_LOG("Simulate Stopped\n");
-	// 打开 EC 程序
-	// 运行程序 [启动中,小框][全黑，全框][冒险的路标][选择冒险者]
-	// 判断进入首页
-	// 模拟 a
-	// 判断进入资料选择页面
-	// 模拟 a
-	// 判断 不在资料选择页面
-	// 截屏 获取输出栏
-	// 判断 红色：重启，绿色：保存重启
-	// 判断 干涸：重启，冲出来：重启
-	// 判断 许愿
-
+		if (get_magic)
+			break;
+		else
+		{
+			DEBUG_LOG("Not Match\n");
+		}
+	}
+	SimulateQuiteGame();
+	if (get_magic)
+	{
+		SaveEC();
+		DEBUG_LOG(" Match\n");
+		
+		MaxRetryTime--;
+	}
+	goto RESTERT;
 }
 
 

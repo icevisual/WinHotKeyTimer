@@ -289,12 +289,37 @@ int TEST_SURF()
 
 }
 
+
+
+//不要忘记使用完char*后delete[]释放内存
+char* wideCharToMultiByte(wchar_t* pWCStrKey)
+{
+	//第一次调用确认转换后单字节字符串的长度，用于开辟空间
+	int pSize = WideCharToMultiByte(CP_OEMCP, 0, pWCStrKey, wcslen(pWCStrKey), NULL, 0, NULL, NULL);
+	char* pCStrKey = new char[pSize + 1];
+	//第二次调用将双字节字符串转换成单字节字符串
+	WideCharToMultiByte(CP_OEMCP, 0, pWCStrKey, wcslen(pWCStrKey), pCStrKey, pSize, NULL, NULL);
+	pCStrKey[pSize] = '\0';
+	return pCStrKey;
+
+	//如果想要转换成string，直接赋值即可
+	//string pKey = pCStrKey;
+}
+
+
+
+
+
+
+
 INT main(int argc, TCHAR * argv[]) {
 	// tesseract ../data/Temp/DetectArea2.bmp result -l chi_sim
-	//system("tesseract ../data/Temp/DetectArea2.bmp result -l chi_sim");
+	//system("tesseract ../data/Temp/DetectArea2.bmp ../data/Temp/result -l chi_sim");
+	//FILE *  fp;
+	//fopen_s(&fp,"../data/Temp/result.txt","r");
 
-	// TEST_SURF();
-
+	//FILE * fp = NULL;
+	//_wfopen_s(&fp, L"utf8.txt", L"r,ccs=utf-8");
 
 	HWND hWnd = NULL;   // 窗口句柄
 	HANDLE hThread = NULL;  // 多线程句柄
@@ -390,7 +415,8 @@ INT main(int argc, TCHAR * argv[]) {
 				/*  GetMatchedStartPointWithFName("../data/Src/backpack.bmp", "../data/Src/de.bmp", 0, FALSE);
 				GetMatchedStartPointWithFName("../data/Src/backpack.bmp", "../data/Src/de1.bmp", 0, FALSE);
 				*/
-				SplitFontImgTest_AutoIOR("../data/Src/xuyuan/benzhoule.bmp");
+				// SplitFontImgTest_AutoIOR("../data/Src/xuyuan/benzhoule.bmp");
+				inRange_DM();
 			}
 			else if (m_HotKeyId7 == msg.wParam) {
 				Mat Src = imread("../data/Src/xuyuan/sc.bmp", IMREAD_COLOR);
