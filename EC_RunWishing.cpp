@@ -326,6 +326,7 @@ RESTERT:
 	if (get_magic)
 	{
 		SaveEC();
+		// TODO: Show Hit Result
 		DEBUG_LOG(" Match rest = %d rc = %d\n", MaxRetryTime, hit_read_count);
 		
 		MaxRetryTime--;
