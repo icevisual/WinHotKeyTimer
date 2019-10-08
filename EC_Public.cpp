@@ -42,7 +42,6 @@ bool file_get_content_utf8(wstring file, wstring &output)
 bool ws_contains_utf8(wstring source, wstring tar)
 {
 	size_t t = source.find(tar);
-	DEBUG_LOG("T = %d\n",t);
 	if (t >= 0 && t < 10000)
 		return true;
 	return false;

@@ -201,6 +201,19 @@ VOID SimulateRead(string itemIndex)
 
 #include <fstream>
 
+typedef struct KDConfigStruct {
+	wstring KeyWords;
+	int max_time;
+} KDConfig,*pKDConfig;
+
+template<class T>
+int length(T& arr)
+{
+	//cout << sizeof(arr[0]) << endl;
+	//cout << sizeof(arr) << endl;
+	return sizeof(arr) / sizeof(arr[0]);
+}
+
 
 VOID RunRead()
 {
@@ -210,9 +223,19 @@ VOID RunRead()
 	CHAR name[250] = { 0 };
 	CHAR storage[100] = { 0 };
 	string fname;
-	wstring KeyWords[] = {L"陨石",L"丰收",L"许愿" ,L"许" };
-	int Score = 0;
+	wstring KeyWords[] = {L"陨石",L"许愿" ,L"许" };// L"丰收",
+	KDConfig kw_config[] = { 
+		{L"陨石",4} ,
+		{L"许愿",10} ,
+		{L"许",10} ,
+		{L"丰收",2} ,
+	};
+	int max_read = 10;
 	int MaxRetryTime = 10;
+
+
+	int Score = 0;
+	
 RESTERT:
 	if (MaxRetryTime < 0)
 		return;
@@ -258,9 +281,10 @@ RESTERT:
 	} while (DetectRet == TRUE);
 
 	DEBUG_LOG("Enter Game\n");
-	int max_read = 4;
+	
 	wstring result_text;
 	bool get_magic = false;
+	int hit_read_count = 0;
 	for (int i = 0; i < max_read; i++)
 	{
 		SimulateRead("e");
@@ -274,17 +298,20 @@ RESTERT:
 		system("tesseract ../data/Temp/DetectArea2.bmp ../data/Temp/result -l chi_sim");
 		file_get_content_utf8(L"../data/Temp/result.txt", result_text);
 		wcout.imbue(locale("chs"));
-		wcout << endl << result_text << endl << endl;;
-		for (int k = 0; k < 3; k++)
+		wcout << endl << result_text << endl << endl;
+
+		for (int k = 0; k < length(kw_config); k++)
 		{
-			get_magic = ws_contains_utf8(result_text, KeyWords[k]);
+			get_magic = ws_contains_utf8(result_text, kw_config[k].KeyWords);
 			if (get_magic)
 			{
+				hit_read_count = i + 1;
+				if (i > kw_config[k].max_time - 1)
+				{
+					get_magic = false;
+					continue;
+				}
 				break;
-			}
-			else
-			{
-				DEBUG_LOG("Not Match\n");
 			}
 		}
 
@@ -292,14 +319,14 @@ RESTERT:
 			break;
 		else
 		{
-			DEBUG_LOG("Not Match\n");
+			DEBUG_LOG("Not Match rest = %d\n", MaxRetryTime);
 		}
 	}
 	SimulateQuiteGame();
 	if (get_magic)
 	{
 		SaveEC();
-		DEBUG_LOG(" Match\n");
+		DEBUG_LOG(" Match rest = %d rc = %d\n", MaxRetryTime, hit_read_count);
 		
 		MaxRetryTime--;
 	}
