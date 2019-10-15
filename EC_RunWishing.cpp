@@ -204,6 +204,7 @@ VOID SimulateRead(string itemIndex)
 typedef struct KDConfigStruct {
 	wstring KeyWords;
 	int max_time;
+	int hit_count;
 } KDConfig,*pKDConfig;
 
 template<class T>
@@ -225,20 +226,30 @@ VOID RunRead()
 	string fname;
 	wstring KeyWords[] = {L"陨石",L"许愿" ,L"许" };// L"丰收",
 	KDConfig kw_config[] = { 
-		{L"陨石",4} ,
-		{L"许愿",10} ,
-		{L"许",10} ,
-		{L"丰收",2} ,
+		{L"陨石",4,0} ,
+		{L"许愿",10,0} ,
+		{L"许",10,0} ,
+		{L"丰收",2,0} ,
 	};
 	int max_read = 10;
 	int MaxRetryTime = 10;
-
-
 	int Score = 0;
-	
+	int used_count = 0;
+
 RESTERT:
 	if (MaxRetryTime < 0)
+
+	{
+		wcout.imbue(locale("chs"));
+		for (int t = 0; t < length(kw_config); t++)
+		{
+			wcout << "[" << kw_config[t].KeyWords;
+			wcout << "] \t";
+			wcout << kw_config[t].hit_count << endl;
+		}
+
 		return;
+	}
 	int index = 0;
 	StartEC();
 
@@ -291,7 +302,7 @@ RESTERT:
 		Gfname(storage, "SCRE-", ".bmp", fname);
 		strcpy_s(name, fname.c_str());
 		GetScreenCapture_GameArea(name);
-		Mat  Screen1 = imread(name, IMREAD_COLOR);
+		Mat Screen1 = imread(name, IMREAD_COLOR);
 		Mat DetectArea1;
 		GetLogArea(Screen1, DetectArea1);
 		imwrite("../data/Temp/DetectArea2.bmp",DetectArea1);
@@ -311,6 +322,8 @@ RESTERT:
 					get_magic = false;
 					continue;
 				}
+				kw_config[k].hit_count++;
+				used_count += i + 1;
 				break;
 			}
 		}
@@ -319,7 +332,7 @@ RESTERT:
 			break;
 		else
 		{
-			DEBUG_LOG("Not Match rest = %d\n", MaxRetryTime);
+			DEBUG_LOG("Not Match Rest = %d,TTL Used = %d\n", MaxRetryTime, used_count);
 		}
 	}
 	SimulateQuiteGame();
@@ -327,7 +340,7 @@ RESTERT:
 	{
 		SaveEC();
 		// TODO: Show Hit Result
-		DEBUG_LOG(" Match rest = %d rc = %d\n", MaxRetryTime, hit_read_count);
+		DEBUG_LOG("Rest Match Count = %d,Hit Used = %d,TTL Used = %d\n", MaxRetryTime, hit_read_count, used_count);
 		
 		MaxRetryTime--;
 	}
